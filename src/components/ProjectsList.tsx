@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getProjectsList } from '../services/apiService';
 import AppLayout from './AppLayout';
 import { Projects } from '../types/Projects';
@@ -13,7 +14,7 @@ import {
   Avatar,
   CardHeader,
   Divider,
-  Pagination
+  Pagination,
 } from '@mui/material';
 import { AccountCircle } from '@mui/icons-material';
 
@@ -75,15 +76,16 @@ const ProjectsList: React.FC = () => {
         {projects.map((item) => (
           <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={item.id} sx={{ p: 1 }}>
             <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
-              
               <CardHeader
                 avatar={<Avatar><AccountCircle /></Avatar>}
-                title={<Typography variant="h6">{item.name}</Typography>}
+                title={
+                  <Link to={`/projects/${item.id}`}>
+                    <Typography variant="h6">{item.name}</Typography>
+                  </Link>
+                }
                 subheader={`Slug: ${item.slug}`}
               />
-              
               <Divider />
-
               <CardContent>
                 <Typography variant="body1" color="textSecondary">
                   Account: {item.account.name}
