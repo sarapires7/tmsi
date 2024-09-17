@@ -6,6 +6,9 @@ import KeyList from './KeyList';
 import AddEditKeyDialog from './AddEditKeyDialog';
 import { Projects } from '../types/Projects';
 import { getProjectsList } from '../services/apiService';
+import GenericDialog from './GenericDialog';
+import AddKeyForm from './AddKeyForm'; 
+
 
 interface Key {
   key: string;
@@ -19,8 +22,25 @@ const ProjectDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('');
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [editKey, setEditKey] = useState<Key | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formValues, setFormValues] = useState({
+    module: '',
+    bu: '',
+    breakpoint: '',
+    repository: '',
+    additionalInfo: '',
+    legalImplications: false,
+  });
+
+  const handleDialogOpen = () => setDialogOpen(true);
+  const handleDialogClose = () => setDialogOpen(false);
+
+  const handleSubmit = () => {
+    console.log('Form Submitted:', formValues);
+    handleDialogClose(); 
+  };
+  
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -79,30 +99,23 @@ const ProjectDetail: React.FC = () => {
           const keyItem = keys.find((k) => k.key === key);
           if (keyItem) {
             setEditKey(keyItem);
-            setOpenDialog(true);
           }
         }}
         onDelete={handleDeleteKey}
       />
 
-      <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)} sx={{ marginTop: 2 }}>
+      <Button variant="contained" color="primary" onClick={handleDialogOpen} sx={{ marginTop: 2 }}>
         Add Key
       </Button>
 
-      <AddEditKeyDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onSave={(key, translation) => {
-          if (editKey) {
-            handleEditKey(key, translation);
-          } else {
-            handleAddKey(key, translation);
-          }
-          setEditKey(null);
-        }}
-        initialKey={editKey?.key}
-        initialTranslation={editKey?.translation}
-      />
+      <GenericDialog
+        open={dialogOpen}
+        title="Add New Key"
+        onClose={handleDialogClose}
+        onSubmit={handleSubmit}
+      >
+        <AddKeyForm formValues={formValues} setFormValues={setFormValues} />
+      </GenericDialog>
     </Container>
   );
 };
