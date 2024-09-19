@@ -4,7 +4,6 @@ import { Container, Typography, Button, Box } from '@mui/material';
 import FilterKeys from '../components/FilterKeys';
 import KeyList from '../components/KeyList';
 import DetailData from '../services/detailData.json';
-import { ProjectDetailProps } from '../types/types';
 import GenericDialog from '../components/GenericDialog';
 import AddKeyForm from '../components/AddKeyForm'; 
 import AppLayout from '../components/AppLayout';
@@ -24,23 +23,51 @@ const ProjectDetail: React.FC = () => {
   const [filter, setFilter] = useState<string>('');
   const [editKey, setEditKey] = useState<Key | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formValues, setFormValues] = useState({
+  
+  const initialFormValues = {
+    id: '',
     module: '',
     bu: '',
     breakpoint: '',
     repository: '',
     additionalInfo: '',
     legalImplications: false,
-  });
+  };
 
-  const handleDialogOpen = () => setDialogOpen(true);
+  const [formValues, setFormValues] = useState(initialFormValues);
+
+  const handleDialogOpen = (key: Key | null = null) => {
+    console.log("oalaa,", key)
+
+    if (key) {
+      console.log("entrei,", key)
+      setFormValues({
+        id: '121334',
+        module: 'settings',
+        bu: 'axa',
+        breakpoint: 'sm',
+        repository: 'wealth',
+        additionalInfo: 'dcsfds',
+        legalImplications: false,
+      });
+    } else {
+      setFormValues(initialFormValues);
+    }
+    setDialogOpen(true);
+  };
+
   const handleDialogClose = () => setDialogOpen(false);
 
   const handleSubmit = () => {
-    console.log('Form Submitted:', formValues);
-    handleDialogClose(); 
+    if (formValues.id) {
+      // Editar key existente
+      setKeys(keys.map((k) => (k.id === formValues.id ? formValues : k)));
+    } else {
+      // Adicionar nova key
+      setKeys([...keys, { ...formValues, id: Date.now().toString() }]);
+    }
+    handleDialogClose();
   };
-  
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -60,14 +87,6 @@ const ProjectDetail: React.FC = () => {
     fetchProject();
   }, [id]);
 
-  const handleAddKey = (id: string, translation: string) => {
-    setKeys([...keys, { id, translation }]);
-  };
-
-  const handleEditKey = (id: string, translation: string) => {
-    setKeys(keys.map((k) => (k.id === id ? { id, translation } : k)));
-  };
-
   const handleDeleteKey = (id: string) => {
     setKeys(keys.filter((k) => k.id !== id));
   };
@@ -80,7 +99,7 @@ const ProjectDetail: React.FC = () => {
     return <Typography>Error: {error}</Typography>;
   }
 
-  console.log(keys)
+  console.log(formValues)
 
   return (
     <AppLayout>
@@ -91,36 +110,32 @@ const ProjectDetail: React.FC = () => {
 
         <Box>
           <FilterKeys filter={filter} onFilterChange={(e) => setFilter(e.target.value)} label="Search" />
-          <Button variant="contained" color="primary" onClick={handleDialogOpen} sx={{ marginTop: 2 }}>
+          <Button variant="contained" color="primary" onClick={() => handleDialogOpen()} sx={{ marginTop: 2 }}>
             Add Key
           </Button>
         </Box>
-      
 
         <KeyList
           items={keys}
           filter={filter}
-          onEdit={(item) => handleEditKey(item.id, item.translation)}
+          onEdit={(item) => handleDialogOpen(item)}
           onDelete={(item) => handleDeleteKey(item.id)}
           renderItem={(item) => (
-            <KeyItem id={item.id} translation={item.issue} />
+            <KeyItem id={item.id} translation={item.translation} />
           )}
           getItemKey={(item) => item.id}
         />
 
-      
-
-      <GenericDialog
-        open={dialogOpen}
-        title="Add New Key"
-        onClose={handleDialogClose}
-        onSubmit={handleSubmit}
-      >
-        <AddKeyForm formValues={formValues} setFormValues={setFormValues} />
-      </GenericDialog>
-    </Container>
+        <GenericDialog
+          open={dialogOpen}
+          title={formValues.id ? 'Edit Key' : 'Add New Key'}
+          onClose={handleDialogClose}
+          onSubmit={handleSubmit}
+        >
+          <AddKeyForm formValues={formValues} setFormValues={setFormValues} handleSubmit={handleSubmit} />
+        </GenericDialog>
+      </Container>
     </AppLayout>
-    
   );
 };
 

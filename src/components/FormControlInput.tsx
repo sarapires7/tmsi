@@ -5,10 +5,11 @@ const FormControlInput: React.FC<any> = ({
     errors,
     formValues,
     questionary,
-    handleSelectChange
+    handleSelectChange,
+    key
 }) => {
   return (
-    <FormControl fullWidth required error={errors.module}>
+    <FormControl fullWidth required error={errors.module} key={key}>
         <InputLabel>What module?</InputLabel>
         <Select
           name="module"

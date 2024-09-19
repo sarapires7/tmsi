@@ -13,9 +13,10 @@ import FormControlInput from './FormControlInput';
 interface AddKeyFormProps {
   formValues: any;
   setFormValues: React.Dispatch<React.SetStateAction<any>>;
+  handleSubmit: (event: React.FormEvent) => void; // Agora passando a função de submit do parent
 }
 
-const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) => {
+const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues, handleSubmit }) => {
   const [errors, setErrors] = useState({
     module: false,
     bu: false,
@@ -23,7 +24,6 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
     repository: false,
   });
 
-  // Função para o Select
   const handleSelectChange = (event: SelectChangeEvent) => {
     const { name, value } = event.target;
     setFormValues({
@@ -32,7 +32,6 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
     });
   };
 
-  // Função para o TextField e TextArea
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     setFormValues({
@@ -41,7 +40,6 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
     });
   };
 
-  // Função para validar o formulário
   const validateForm = () => {
     const newErrors = {
       module: formValues.module === '',
@@ -51,23 +49,16 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
     };
     setErrors(newErrors);
 
-    // Verificar se há algum erro
     return !Object.values(newErrors).some((error) => error);
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (validateForm()) {
-      // Lógica de envio de formulário aqui (API call, etc.)
-      console.log('Formulário válido, enviar dados:', formValues);
-    } else {
-      console.log('Formulário inválido');
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit}>
-      {DataForm.map((formKey,index) => (
+    <form onSubmit={(e) => {
+      if (validateForm()) {
+        handleSubmit(e);
+      }
+    }}>
+      {DataForm.map((formKey, index) => (
         <FormControlInput
           errors={errors}
           formValues={formValues}
@@ -75,11 +66,8 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
           handleSelectChange={handleSelectChange}
           key={index}
         />
-        
       ))}
-      
 
-      {/* Campo de texto livre */}
       <TextField
         label="Free text"
         name="freeText"
@@ -91,7 +79,6 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
         margin="normal"
       />
 
-      {/* Checkbox para "Legal implications" */}
       <FormControlLabel
         control={
           <Checkbox
@@ -103,9 +90,8 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
         label="Legal implications?"
       />
 
-      {/* Botão de enviar */}
       <Button type="submit" variant="contained" color="primary">
-        Add Key
+        {formValues.id ? 'Edit Key' : 'Add Key'}
       </Button>
     </form>
   );
