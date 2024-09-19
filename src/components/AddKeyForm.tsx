@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import {
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
   TextField,
   Checkbox,
   FormControlLabel,
   Button,
-  FormHelperText,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
+import DataForm from "../services/dataKeyForm.json"
+import FormControlInput from './FormControlInput';
 
 interface AddKeyFormProps {
   formValues: any;
@@ -69,69 +67,17 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues }) =>
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Select para "What module?" */}
-      <FormControl fullWidth required error={errors.module}>
-        <InputLabel>What module?</InputLabel>
-        <Select
-          name="module"
-          value={formValues.module}
-          onChange={handleSelectChange}
-        >
-          <MenuItem value="">-- Select Module --</MenuItem>
-          <MenuItem value="Module 1">Module 1</MenuItem>
-          <MenuItem value="Module 2">Module 2</MenuItem>
-          <MenuItem value="Module 3">Module 3</MenuItem>
-        </Select>
-        {errors.module && <FormHelperText>Module is required.</FormHelperText>}
-      </FormControl>
-
-      {/* Select para "Which BU?" */}
-      <FormControl fullWidth required error={errors.bu}>
-        <InputLabel>Which BU?</InputLabel>
-        <Select
-          name="bu"
-          value={formValues.bu}
-          onChange={handleSelectChange}
-        >
-          <MenuItem value="">-- Select BU --</MenuItem>
-          <MenuItem value="BU 1">BU 1</MenuItem>
-          <MenuItem value="BU 2">BU 2</MenuItem>
-          <MenuItem value="BU 3">BU 3</MenuItem>
-        </Select>
-        {errors.bu && <FormHelperText>BU is required.</FormHelperText>}
-      </FormControl>
-
-      {/* Select para "Which breakpoint?" */}
-      <FormControl fullWidth required error={errors.breakpoint}>
-        <InputLabel>Which breakpoint?</InputLabel>
-        <Select
-          name="breakpoint"
-          value={formValues.breakpoint}
-          onChange={handleSelectChange}
-        >
-          <MenuItem value="">-- Select Breakpoint --</MenuItem>
-          <MenuItem value="Breakpoint 1">Breakpoint 1</MenuItem>
-          <MenuItem value="Breakpoint 2">Breakpoint 2</MenuItem>
-          <MenuItem value="Breakpoint 3">Breakpoint 3</MenuItem>
-        </Select>
-        {errors.breakpoint && <FormHelperText>Breakpoint is required.</FormHelperText>}
-      </FormControl>
-
-      {/* Select para "Which repository?" */}
-      <FormControl fullWidth required error={errors.repository}>
-        <InputLabel>Which repository?</InputLabel>
-        <Select
-          name="repository"
-          value={formValues.repository}
-          onChange={handleSelectChange}
-        >
-          <MenuItem value="">-- Select Repository --</MenuItem>
-          <MenuItem value="Repo 1">Repo 1</MenuItem>
-          <MenuItem value="Repo 2">Repo 2</MenuItem>
-          <MenuItem value="Repo 3">Repo 3</MenuItem>
-        </Select>
-        {errors.repository && <FormHelperText>Repository is required.</FormHelperText>}
-      </FormControl>
+      {DataForm.map((formKey,index) => (
+        <FormControlInput
+          errors={errors}
+          formValues={formValues}
+          questionary={formKey}
+          handleSelectChange={handleSelectChange}
+          key={index}
+        />
+        
+      ))}
+      
 
       {/* Campo de texto livre */}
       <TextField

@@ -1,0 +1,34 @@
+[
+    {
+        "id": "1",
+        "issue": "ATP-232",
+        "keys_modified": [
+            {
+                "type": "add",
+                "before": null,
+                "after": {
+                    "key": "settings_close",
+                    "value": "Close"
+                }
+
+            }
+        ],
+        "keys_unmodified": ["Key2", "Key1"]
+    },
+    {
+        "id": "2",
+        "issue": "ATP-1112",
+        "keys_modified": [
+            {
+                "type": "add",
+                "before": null,
+                "after": {
+                    "key": "settings_close",
+                    "value": "Close"
+                }
+
+            }
+        ],
+        "keys_unmodified": ["Key2", "Key1"]
+    }
+]

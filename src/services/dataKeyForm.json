@@ -1,0 +1,18 @@
+[
+    {
+        "question": "What module?",
+        "options": ["s", "ss"]
+    },
+    {
+        "question": "Which BU?",
+        "options": ["s", "ss"]
+    },
+    {
+        "question": "Which breackpoint??",
+        "options": ["sm", "md"]
+    },
+    {
+        "question": "Which repository??",
+        "options": ["s", "ss"]
+    }
+]

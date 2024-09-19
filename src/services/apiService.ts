@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { Projects } from '../types/Projects';
+import { Projects } from '../types/types';
 import data from './projects.json'
 
 // Create Axios instance with baseURL configuration

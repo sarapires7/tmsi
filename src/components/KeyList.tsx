@@ -1,29 +1,45 @@
 import React from 'react';
-import { Grid } from '@mui/material';
-import KeyItem from './KeyItem';
+import { List, ListItem, Divider, IconButton } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 
-interface KeyListProps {
-  keys: { key: string; translation: string }[];
-  onEdit: (key: string) => void;
-  onDelete: (key: string) => void;
-  filter: string;
+interface KeyListProps<T> {
+  items: T[];  // Lista genérica de itens
+  filter: string;  // Filtro de busca
+  onEdit?: (item: T) => void;  // Ação de editar
+  onDelete?: (item: T) => void;  // Ação de deletar
+  renderItem: (item: T) => React.ReactNode;  // Renderização personalizada para cada item
+  getItemKey: (item: T) => string;  // Função para obter a chave única de cada item
 }
 
-const KeyList: React.FC<KeyListProps> = ({ keys, onEdit, onDelete, filter }) => {
+const KeyList = <T,>({ items, filter, onEdit, onDelete, renderItem, getItemKey }: KeyListProps<T>) => {
   return (
-    <Grid container spacing={2}>
-      {keys
-        .filter((k) => k.key.includes(filter)) 
-        .map((k) => (
-          <KeyItem
-            key={k.key}
-            keyName={k.key}
-            translation={k.translation}
-            onEdit={() => onEdit(k.key)}
-            onDelete={() => onDelete(k.key)}
-          />
+    <List>
+      {items
+        .filter((item) => getItemKey(item).includes(filter))
+        .map((item) => (
+          <React.Fragment key={getItemKey(item)}>
+            <ListItem
+              secondaryAction={
+                <>
+                  {onEdit && (
+                    <IconButton aria-label="edit" onClick={() => onEdit(item)}>
+                      <Edit />
+                    </IconButton>
+                  )}
+                  {onDelete && (
+                    <IconButton aria-label="delete" onClick={() => onDelete(item)}>
+                      <Delete />
+                    </IconButton>
+                  )}
+                </>
+              }
+            >
+              {renderItem(item)}  
+            </ListItem>
+            <Divider />
+          </React.Fragment>
         ))}
-    </Grid>
+    </List>
   );
 };
 

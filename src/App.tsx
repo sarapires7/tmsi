@@ -1,18 +1,29 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import theme from './theme';
 import { ThemeProvider } from '@mui/material/styles';
-import ProjectsList from './components/ProjectsList';
-import ProjectDetail from './components/ProjectDetail'; 
+import ProjectsList from './pages/ProjectsList';
+import ProjectDetail from './pages/ProjectDetail'; 
+import ProjectChanges from './pages/ProjectChanges'; 
+
 
 function App() {
+  const router = createBrowserRouter([
+    {
+      path: "/projects",
+      element: <ProjectsList />
+    },
+    {
+      path: "/projects/:id/changes",
+      element: <ProjectChanges />
+    },
+    {
+      path: "/projects/:id/changes/:id/keys",
+      element: <ProjectDetail />
+    },
+  ])
   return (
     <ThemeProvider theme={theme}>
-      <Router>
-        <Routes>
-          <Route path="/projects" element={<ProjectsList />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} /> 
-        </Routes>
-      </Router>
+      <RouterProvider router={router} />
     </ThemeProvider>
   );
 }
