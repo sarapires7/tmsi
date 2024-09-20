@@ -7,7 +7,7 @@ const KeyItem: React.FC<Key> = ({ id, translation }) => {
     <ListItemText 
       primary={id}
       secondary={<Typography color="textSecondary"> {translation}</Typography>}
-      primaryTypographyProps={{fontWeight:'bold'}}
+      primaryTypographyProps={{ fontWeight:'bold' }}
     />
   );
 };

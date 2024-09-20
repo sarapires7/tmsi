@@ -1,8 +1,20 @@
-export interface Changes {
+export interface Account {
   id: string;
-  issue: string;
-  keys_unmodified: string[];
-  keys_modified: string[];
+  name: string;
+  slug:string;
+  createdAt: string;
+  updateddAt: string;
+}
+
+export interface Projects {
+  account: Account;
+  id: number;
+  name: string;
+  slug: string;
+  mainFormat?: string;
+  pointOfContact?: PointOfContact;
+  createAt: string;
+  updateAt: string;
 }
 
 export interface ProjectDetailProps {
@@ -32,7 +44,6 @@ export interface Key {
 }
 
 export interface Keys {
-  id: string;
   keys: Key[];
   filter: string;
 }
@@ -43,19 +54,20 @@ export interface FilterKeysProps {
   onFilterChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export interface Account {
-  createAt: string;
-  id: number;
-  name: string;
-  slug: string;
-  updateAt: string;
+export interface ChangeProps {
+  changes: ChangeProps[];
 }
 
-export interface Projects {
-  account: Account;
-  createAt: string;
-  id: number;
-  name: string;
-  slug: string;
-  updateAt: string;
+export interface ChangeProps {
+  id: string;
+  issue: string;
+  keys_unmodified: string[];
+  keys_modified: ModificationProps[];
 }
+
+export interface ModificationProps {
+  type: string;
+  before: { key: string, value: string };
+  after: { key: string, value: string };
+}
+

@@ -1,30 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Typography, Button, Box, TextField } from '@mui/material';
-import FilterKeys from '../components/FilterKeys';
 import KeyList from '../components/KeyList';
-import DetailData from '../services/dataKeyForm.json';
-import { Projects, Changes } from '../types/types';
 import ChangeData from '../services/dataChanges.json';
-import GenericDialog from '../components/GenericDialog';
-import AddKeyForm from '../components/AddKeyForm'; 
 import AppLayout from '../components/AppLayout';
+import FilterKeys from '../components/FilterKeys';
+import { ChangeProps } from '../types/types';
+import GenericDialog from '../components/GenericDialog';
 import KeyItem from '../components/KeyItem';
-
-interface Key {
-  id: string;
-  issue: string;
-  keys_modified: any[]
-}
+import Loading from '../components/Loading';
 
 const ProjectChanges: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [change, setChange] = useState<Key[]>([]);
-  const [keys, setKeys] = useState<Key[]>([]);
+  const [changes, setChanges] = useState<any[]>([]);
+  const [filter, setFilter] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>('');
-  const [editKey, setEditKey] = useState<Key | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formValues, setFormValues] = useState({
     issue: '',
@@ -32,34 +23,12 @@ const ProjectChanges: React.FC = () => {
 
   const navigate = useNavigate();
 
-  console.log(change)
-
-  const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
-
-  const handleSubmit = () => {
-    setChange([...change, { id: Date.now().toString(), issue: formValues.issue, keys_modified: [
-      {
-          type: "add",
-          before: null,
-          after: {
-              key: "settings_close",
-              value: "Close"
-          }
-
-      }
-  ], }]);
-    console.log('Form Submitted:', formValues);
-    handleDialogClose(); 
-  };
-  
-
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchChanges = async () => {
       try {
-        const project = ChangeData;
-        if (project) {
-            setChange(project);
+        const changes = ChangeData;
+        if (changes) {
+            setChanges(changes);
         }
       } catch (err) {
         setError('Failed to load project details.');
@@ -68,72 +37,101 @@ const ProjectChanges: React.FC = () => {
       }
     };
 
-    fetchProject();
+    fetchChanges();
   }, [id]);
 
-  const handleAddKey = (id: string, issue: string) => {
-    
+  const handleDialogOpen = () => setDialogOpen(true);
+  const handleDialogClose = () => setDialogOpen(false);
+
+  const handleAddChange = () => {
+    setChanges([
+      ...changes, 
+      { 
+        id: Date.now().toString(), 
+        issue: formValues.issue, 
+        keys_modified: 
+          [
+            {
+                type: "add",
+                before: null,
+                after: {
+                    key: "settings_close",
+                    value: "Close"
+                }
+
+            }
+          ], 
+      }]);
+    console.log('Form Submitted:', formValues);
+    handleDialogClose(); 
   };
 
-  const handleEditKey = (id: string) => {
+  const handleEditChange = (id: string) => {
     navigate(`${id}/keys`);
-
   };
 
-  const handleDeleteKey = (key: string) => {
-    setKeys(keys.filter((k) => k.id !== id));
+  const handleDeleteChange = (change: string) => {
+    const deleteChange = changes.filter((item: { id:string }) => item.id !== change)
+    setChanges(deleteChange);
   };
 
   if (loading) {
-    return <Typography>Loading...</Typography>;
+    return <Loading />;
   }
 
   if (error) {
     return <Typography>Error: {error}</Typography>;
   }
 
-  console.log(keys)
-
   return (
     <AppLayout>
       <Container>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ mt: 4 }}>
           Changes
         </Typography>
 
-        <Box>
-          <FilterKeys filter={filter} onFilterChange={(e) => setFilter(e.target.value)} label="Search" />
-          <Button variant="contained" color="primary" onClick={handleDialogOpen} sx={{ marginTop: 2 }}>
-            Add Key
-          </Button>
-        </Box>
+        <Box display='flex' alignItems='center' justifyContent='space-between' p={2}>
+            <FilterKeys 
+              filter={filter} 
+              onFilterChange={(e) => setFilter(e.target.value)} 
+              label="Search by issue..." 
+            />
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => handleDialogOpen()} 
+              sx={{ mt: 2 }}
+            >
+                Add change
+            </Button>
+          </Box>
 
         <KeyList
-          items={change}
+          items={changes}
           filter={filter}
-          onEdit={(item) => handleEditKey(item.id)}
-          onDelete={(item) => handleDeleteKey(item.id)}
+          onEdit={(item) => handleEditChange(item.id)}
+          onDelete={(item) => handleDeleteChange(item.id)}
           renderItem={(item) => (
-            <KeyItem id={item.id} translation={item.issue} />
+            <KeyItem id='Issue' translation={item.issue} />
           )}
-          getItemKey={(item) => item.id}
+          getItemKey={(item) => item.issue.toLowerCase()}
         />
 
       <GenericDialog
         open={dialogOpen}
-        title="Add New Key"
+        title="Add New Change"
         onClose={handleDialogClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleAddChange}
       >
-        <Box sx={{ padding: 2 }}>
-            <TextField
-              label="Issue"
-              value={formValues.issue}
-              onChange={(e) => setFormValues({ ...formValues, issue: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-          </Box>
+        <Box sx={{ p: 2 }}>
+          <TextField
+            label="Issue identifier..."
+            value={formValues.issue}
+            onChange={(e) => setFormValues({ ...formValues, issue: e.target.value.toUpperCase() })}
+            fullWidth
+            margin="normal"
+          />
+        </Box>
       </GenericDialog>
     </Container>
     </AppLayout>

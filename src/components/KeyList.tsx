@@ -3,19 +3,26 @@ import { List, ListItem, Divider, IconButton } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 
 interface KeyListProps<T> {
-  items: T[];  // Lista genérica de itens
-  filter: string;  // Filtro de busca
-  onEdit?: (item: T) => void;  // Ação de editar
-  onDelete?: (item: T) => void;  // Ação de deletar
-  renderItem: (item: T) => React.ReactNode;  // Renderização personalizada para cada item
-  getItemKey: (item: T) => string;  // Função para obter a chave única de cada item
+  items: T[];  
+  filter: string;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  renderItem: (item: T) => React.ReactNode;
+  getItemKey: (item: T) => string;
 }
 
-const KeyList = <T,>({ items, filter, onEdit, onDelete, renderItem, getItemKey }: KeyListProps<T>) => {
+const KeyList = <T,>({ 
+  items, 
+  filter, 
+  onEdit, 
+  onDelete, 
+  renderItem, 
+  getItemKey 
+}: KeyListProps<T>) => {
   return (
     <List>
       {items
-        .filter((item) => getItemKey(item).includes(filter))
+        .filter((item) => getItemKey(item).includes(filter.toLowerCase()))
         .map((item) => (
           <React.Fragment key={getItemKey(item)}>
             <ListItem

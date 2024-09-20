@@ -1,13 +1,17 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography } from '@mui/material';
+import { AppBar, Button, Toolbar, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   return (
-    <AppBar position="static" sx={{ bgcolor: '#cccccc' }}>
+    <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" color="inherit">
-          TMSI - Phrase
-        </Typography>
+        <Button onClick={() => navigate('/projects')} color={'inherit'}>
+          <Typography variant="h6" color="inherit">
+            TMSI - Phrase
+          </Typography>
+        </Button>
       </Toolbar>
     </AppBar>
   );

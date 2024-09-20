@@ -1,29 +1,53 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
+import { 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  SelectChangeEvent,
+  MenuItem, 
+  FormHelperText 
+} from '@mui/material';
 
-const FormControlInput: React.FC<any> = ({
-    errors,
-    formValues,
-    questionary,
-    handleSelectChange,
-    key
+interface FormControlInputProps {
+  errors: boolean;
+  value: string;
+  label: string;
+  options: string[];
+  handleSelectChange: (event: SelectChangeEvent) => void;
+  name: string;
+}
+
+const FormControlInput: React.FC<FormControlInputProps> = ({
+  errors,
+  value,
+  label,
+  options,
+  handleSelectChange,
+  name,
 }) => {
   return (
-    <FormControl fullWidth required error={errors.module} key={key}>
-        <InputLabel>What module?</InputLabel>
-        <Select
-          name="module"
-          value={formValues.module}
-          onChange={handleSelectChange}
-        >
-          <MenuItem value="">-- Select Module --</MenuItem>
-          {questionary.options.map((option: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined, index: string | number | readonly string[] | undefined) => (
-            <MenuItem value={index}>{option}</MenuItem>
-          ))}
-          
-        </Select>
-        {errors.module && <FormHelperText>Module is required.</FormHelperText>}
-      </FormControl>
+    <FormControl
+      variant="standard" 
+      fullWidth 
+      required 
+      error={errors} 
+      sx={{ mb: 2 }}
+    >
+      <InputLabel>{label}</InputLabel>
+      <Select
+        name={name}
+        value={value}
+        onChange={handleSelectChange}
+      >
+        <MenuItem value="">-- Select {label} --</MenuItem>
+        {options.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+      {errors && <FormHelperText>{`${label} is required.`}</FormHelperText>}
+    </FormControl>
   );
 };
 

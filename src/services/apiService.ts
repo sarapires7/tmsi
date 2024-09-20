@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
-import { Projects } from '../types/types';
-import data from './projects.json'
+import { Projects, ChangeProps } from '../types/types';
+import projects from './projects.json'
+import changes from './dataChanges.json'
 
 // Create Axios instance with baseURL configuration
 const api = axios.create({
@@ -15,12 +16,24 @@ const handleRequestError = (error: AxiosError) => {
 };
 
 // Function to get projects list
-export const getProjectsList = async (): Promise<Projects[]> => {
+export const getProjectsList = async (): Promise<any[]> => {
   try {
     //const response = await api.get<Projects[]>('/projects');
     // return response.data;
-    const response = data
+    const response = projects
     return response;
+  } catch (error) {
+    handleRequestError(error as AxiosError);
+    return [];
+  }
+};
+
+// Function to get changes list
+export const getChangesList = async (): Promise<any[]> => {
+  try {
+    //const response = await api.get<Projects[]>('/projects');
+    // return response.data;
+    return changes;
   } catch (error) {
     handleRequestError(error as AxiosError);
     return [];

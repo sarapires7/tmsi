@@ -1,1 +1,18 @@
-{ "id": "greeting", "name": "Hello", "keys":[{"id": "qq", "translation": "123"}, {"id": "qqdddd", "translation": "wqwd"}] }
+{ 
+    "id": "37999776444657re4656rf", 
+    "name": "Wealth", 
+    "keys":[
+        {
+            "id": "settings.registration.cancel", 
+            "translation": "Cancel"
+        }, 
+        {
+            "id": "settings.registration.save", 
+            "translation": "Save"
+        },
+        {
+            "id": "settings.name", 
+            "translation": "Settings"
+        }
+    ]
+}

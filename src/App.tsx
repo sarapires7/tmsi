@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import theme from './theme';
 import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme';
 import ProjectsList from './pages/ProjectsList';
 import ProjectDetail from './pages/ProjectDetail'; 
 import ProjectChanges from './pages/ProjectChanges'; 

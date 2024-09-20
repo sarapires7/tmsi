@@ -8,22 +8,25 @@ import {
   Card, 
   CardContent, 
   Typography, 
-  CircularProgress, 
   Alert, 
   Container,
   Avatar,
   CardHeader,
   Divider,
-  Pagination,
 } from '@mui/material';
+import { dateFormatToDDMMYYYY } from '../utils/dateUtils';
 import { AccountCircle } from '@mui/icons-material';
+import Loading from '../components/Loading'
+import Pagination from '../components/Pagination';
 
 const ProjectsList: React.FC = () => {
   const [projects, setProjects] = useState<Projects[]>([]); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1); 
+  const [currentItems, setCurrentItems] = useState<any[]>([]); 
   const itemsPerPage = 6;
+  const totalPerPage = Math.ceil(projects.length / itemsPerPage)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,21 +43,20 @@ const ProjectsList: React.FC = () => {
     fetchData();
   }, []);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setCurrentPage(value);
-  };
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const itemsToShow = projects.slice(startIndex, endIndex);
+    setCurrentItems(itemsToShow);
+  }, [currentPage, itemsPerPage, projects]);
 
-  // Calculate items in current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = projects.slice(indexOfFirstItem, indexOfLastItem);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   if (loading) {
     return (
-      <Container>
-        <CircularProgress />
-        <Typography>Loading projects...</Typography>
-      </Container>
+      <Loading />
     );
   }
 
@@ -69,43 +71,50 @@ const ProjectsList: React.FC = () => {
   return (
     <AppLayout>
       <Container>
-        <Typography variant="h4" gutterBottom align="center">Projects Phrase</Typography>
+        <Typography variant="h4" gutterBottom align="center" mt={6} mb={4}>
+          Projects Phrase
+        </Typography>
 
         <Grid2 container spacing={3}>
-          {projects.map((item) => (
+          {currentItems.map((item) => (
             <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={item.id} sx={{ p: 1 }}>
-              <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
-                <CardHeader
-                  avatar={<Avatar><AccountCircle /></Avatar>}
-                  title={
-                    <Link to={`/projects/${item.id}/changes`}>
-                      <Typography variant="h6">{item.name}</Typography>
-                    </Link>
-                  }
-                  subheader={`Slug: ${item.slug}`}
-                />
-                <Divider />
-                <CardContent>
-                  <Typography variant="body1" color="textSecondary">
-                    Account: {item.account.name}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Account Slug: {item.account.slug}
-                  </Typography>
-                </CardContent>
-              </Card>
+              <Link 
+                to={`/projects/${item.id}/changes`}
+                style={{
+                  textDecoration: 'none',
+                  cursor:'pointer'
+                }}
+              >
+                <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
+                  <CardHeader
+                    avatar={<Avatar><AccountCircle /></Avatar>}
+                    title={
+                      <Typography variant="h6" color='#001950'>
+                        {item.name}
+                      </Typography>
+                    }
+                    subheader={`Updated at: ${dateFormatToDDMMYYYY(item.account.updatedAt)}`}
+                  />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body1" color="textSecondary">
+                      Account: {item.account.name}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Created at: {dateFormatToDDMMYYYY(item.account.createdAt)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Link>
             </Grid2>
           ))}
         </Grid2>
         {/* Pagination */}
         <Container sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
           <Pagination 
-            count={Math.ceil(projects.length / itemsPerPage)}  // Calculate total number per page
-            page={currentPage}  // Current page
-            onChange={handlePageChange}  // Page change function
-            color="primary" 
-            showFirstButton  
-            showLastButton 
+            totalPages={totalPerPage}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
           />
         </Container>
       </Container>

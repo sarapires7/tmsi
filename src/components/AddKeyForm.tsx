@@ -1,98 +1,94 @@
-import React, { useState } from 'react';
-import {
-  FormControl,
-  TextField,
-  Checkbox,
-  FormControlLabel,
-  Button,
-} from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
-import DataForm from "../services/dataKeyForm.json"
-import FormControlInput from './FormControlInput';
+import React from 'react';
+import { Button, TextField, Typography, Box } from '@mui/material';
+import { SelectChangeEvent } from '@mui/material/Select'; 
+import FormControlInput from './FormControlInput'; // Importa o componente reutilizável
 
-interface AddKeyFormProps {
-  formValues: any;
-  setFormValues: React.Dispatch<React.SetStateAction<any>>;
-  handleSubmit: (event: React.FormEvent) => void; // Agora passando a função de submit do parent
-}
-
-const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues, handleSubmit }) => {
-  const [errors, setErrors] = useState({
-    module: false,
-    bu: false,
-    breakpoint: false,
-    repository: false,
-  });
-
-  const handleSelectChange = (event: SelectChangeEvent) => {
-    const { name, value } = event.target;
-    setFormValues({
-      ...formValues,
-      [name as string]: value,
-    });
-  };
+const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, setStep, errors }) => {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    setFormValues({
-      ...formValues,
-      [name]: value,
-    });
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const validateForm = () => {
-    const newErrors = {
-      module: formValues.module === '',
-      bu: formValues.bu === '',
-      breakpoint: formValues.breakpoint === '',
-      repository: formValues.repository === '',
-    };
-    setErrors(newErrors);
-
-    return !Object.values(newErrors).some((error) => error);
+  const handleSelectChange = (event: SelectChangeEvent<string>, name: string) => {
+    setFormData((prev: any) => ({ ...prev, [name]: event.target.value }));
   };
 
   return (
-    <form onSubmit={(e) => {
-      if (validateForm()) {
-        handleSubmit(e);
-      }
-    }}>
-      {DataForm.map((formKey, index) => (
-        <FormControlInput
-          errors={errors}
-          formValues={formValues}
-          questionary={formKey}
-          handleSelectChange={handleSelectChange}
-          key={index}
-        />
-      ))}
+    <form>
+      {step === 1 && (
+        <>
+          <Typography variant="h5">Step 1</Typography>
 
-      <TextField
-        label="Free text"
-        name="freeText"
-        value={formValues.freeText}
-        onChange={handleInputChange}
-        fullWidth
-        multiline
-        rows={4}
-        margin="normal"
-      />
-
-      <FormControlLabel
-        control={
-          <Checkbox
-            name="legalImplications"
-            checked={formValues.legalImplications}
-            onChange={handleInputChange}
+          <FormControlInput
+            errors={errors.module}
+            value={formData.module}
+            label="Module"
+            options={['Module1', 'Module2', 'Module3']}
+            handleSelectChange={(e) => handleSelectChange(e, 'module')}
+            name="module"
           />
-        }
-        label="Legal implications?"
-      />
 
-      <Button type="submit" variant="contained" color="primary">
-        {formValues.id ? 'Edit Key' : 'Add Key'}
-      </Button>
+          <FormControlInput
+            errors={errors.bu}
+            value={formData.bu}
+            label="BU"
+            options={['BU1', 'BU2', 'BU3']}
+            handleSelectChange={(e) => handleSelectChange(e, 'bu')}
+            name="bu"
+          />
+
+          <FormControlInput
+            errors={errors.breakpoints}
+            value={formData.breakpoints}
+            label="Breakpoints"
+            options={['BP1', 'BP2', 'BP3']}
+            handleSelectChange={(e) => handleSelectChange(e, 'breakpoints')}
+            name="breakpoints"
+          />
+
+          <TextField
+            label="Free text"
+            fullWidth
+            margin="normal"
+            name="freeText"
+            value={formData.freeText}
+            onChange={handleInputChange}
+            required
+          />
+
+          <Typography variant="body1">
+            Suggested Key: {formData.module || formData.bu || formData.breakpoints  || formData.freeText ? `${formData.module}.${formData.bu}.${formData.breakpoints}.${formData.freeText}`.toLowerCase() : 'N/A'}
+          </Typography>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <Typography variant="h5">Step 2</Typography>
+
+          <TextField
+            label="Translation (English)"
+            fullWidth
+            margin="normal"
+            name="translation"
+            value={formData.translation}
+            onChange={handleInputChange}
+            required
+          />
+
+          <FormControlInput
+            errors={errors.repo}
+            value={formData.repo}
+            label="Repo"
+            options={['Repo1', 'Repo2', 'Repo3']}
+            handleSelectChange={(e) => handleSelectChange(e, 'repo')}
+            name="repo"
+          />
+
+          <input type="file" accept="image/*" onChange={handleInputChange} />
+        </>
+      )}
     </form>
   );
 };

@@ -3,10 +3,10 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4a90fe',
+      main: '#001950',
     },
     secondary: {
-      main: '#ff4081',
+      main: '#908271',
     },
   },
   typography: {
@@ -16,7 +16,7 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#4a90fe',
+          backgroundColor: '#001950',
         },
       },
     },

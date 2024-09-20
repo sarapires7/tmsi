@@ -11,24 +11,36 @@
                     "value": "Close"
                 }
 
+            },
+            {
+                "type": "delete",
+                "before": {
+                    "key": "settings_save",
+                    "value": "Save"
+                },
+                "after": null
+
             }
         ],
-        "keys_unmodified": ["Key2", "Key1"]
+        "keys_unmodified": ["settings.test1", "settings.test2", "settings.test3", "settings.test4"]
     },
     {
         "id": "2",
         "issue": "ATP-1112",
         "keys_modified": [
             {
-                "type": "add",
-                "before": null,
+                "type": "update",
+                "before": {
+                    "key": "settings_name",
+                    "value": "Definitions"
+                },
                 "after": {
-                    "key": "settings_close",
-                    "value": "Close"
+                    "key": "settings_name",
+                    "value": "Settings"
                 }
 
             }
         ],
-        "keys_unmodified": ["Key2", "Key1"]
+        "keys_unmodified": ["settings.test1", "settings.test2", "settings.test3", "settings.test4"]
     }
 ]
