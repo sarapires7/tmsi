@@ -7,9 +7,10 @@ interface GenericDialogProps {
   onClose: () => void;
   onSubmit: () => void;
   children: React.ReactNode;
-  step?: number;  // Agora opcional
-  setStep?: (step: number) => void;  // Agora opcional
-  totalSteps?: number;  // Agora opcional
+  step?: number;
+  setStep?: (step: number) => void;
+  totalSteps?: number;
+  onNext?: () => void
 }
 
 const GenericDialog: React.FC<GenericDialogProps> = ({
@@ -20,10 +21,13 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
   step,
   setStep,
   totalSteps,
-  children
+  children,
+  onNext
 }) => {
   const handleNext = () => {
-    if (setStep && step && totalSteps && step < totalSteps) {
+    if (onNext) {
+      onNext();
+    } else if (setStep && step !== undefined && step < totalSteps!) {
       setStep(step + 1);
     }
   };
@@ -43,7 +47,6 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
           Cancel
         </Button>
 
-        {/* Renderizar os botões de navegação se step e totalSteps estiverem definidos */}
         {step && setStep && totalSteps ? (
           <>
             {step > 1 && (
@@ -62,7 +65,6 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
             )}
           </>
         ) : (
-          // Caso não tenha steps, apenas exibe o botão de Submit
           <Button onClick={onSubmit} color="primary">
             Submit
           </Button>

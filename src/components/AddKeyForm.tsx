@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button, TextField, Typography, Box } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select'; 
-import FormControlInput from './FormControlInput'; // Importa o componente reutilizável
+import FormControlInput from './FormControlInput';
 
-const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, setStep, errors }) => {
+const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -54,11 +54,13 @@ const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, setStep, error
             name="freeText"
             value={formData.freeText}
             onChange={handleInputChange}
+            error={errors.freeText}
+            helperText={errors.freeText ? "This field is required." : ""}
             required
           />
 
           <Typography variant="body1">
-            Suggested Key: {formData.module || formData.bu || formData.breakpoints  || formData.freeText ? `${formData.module}.${formData.bu}.${formData.breakpoints}.${formData.freeText}`.toLowerCase() : 'N/A'}
+            Suggested Key: {formData.module && formData.bu && formData.breakpoints && formData.freeText ? `${formData.module}.${formData.bu}.${formData.breakpoints}.${formData.freeText}`.toLowerCase() : 'N/A'}
           </Typography>
         </>
       )}
@@ -74,6 +76,8 @@ const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, setStep, error
             name="translation"
             value={formData.translation}
             onChange={handleInputChange}
+            error={errors.translation}
+            helperText={errors.translation ? "This field is required." : ""}
             required
           />
 

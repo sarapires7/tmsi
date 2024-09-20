@@ -35,11 +35,13 @@ const ProjectDetail: React.FC = () => {
     screenshot: null
   };
 
-  const [errors, setErrors] = React.useState({
+  const [errors, setErrors] = useState({
     module: false,
     bu: false,
     breakpoints: false,
     repo: false,
+    freeText: false,
+    translation: false
   });
 
   const [formValues, setFormValues] = useState(initialFormValues);
@@ -59,10 +61,32 @@ const ProjectDetail: React.FC = () => {
     setFormValues(initialFormValues);
   }, [initialFormValues]);
 
-  const handleSubmit = useCallback(() => {
-    console.log(formValues);
-    handleDialogClose();
-  }, [formValues, handleDialogClose]);
+  const validateFields = () => {
+    const newErrors = {
+      module: formValues.module === '',
+      bu: formValues.bu === '',
+      breakpoints: formValues.breakpoints === '',
+      repo: step === 2 && formValues.repo === '',
+      freeText: formValues.freeText === '',
+      translation: step === 2 && formValues.translation === '',
+    };
+    
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
+    const handleSubmit = useCallback(() => {
+      if (validateFields()) {
+        console.log(formValues);
+        handleDialogClose();
+      }
+    }, [formValues, handleDialogClose]);
+
+    const handleNextStep = useCallback(() => {
+      if (validateFields()) {
+        setStep((prevStep) => prevStep + 1);
+      }
+    }, [validateFields]);
 
   const handleEditKey = useCallback((dataToEdit: typeof formValues) => {
     setFormValues(dataToEdit);
@@ -146,7 +170,8 @@ const ProjectDetail: React.FC = () => {
         onSubmit={handleSubmit}
         step={step}
         setStep={setStep}
-        totalSteps={totalSteps}  // Passa o número de passos
+        totalSteps={totalSteps}
+        onNext={handleNextStep}
       >
         <AddKeyForm 
           formData={formValues} 
