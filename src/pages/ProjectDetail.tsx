@@ -25,15 +25,16 @@ const ProjectDetail: React.FC = () => {
   const initialFormValues = {
     id: '',
     module: '',
-    bu: '',
-    breakpoints: '',
+    bu: [],
+    breakpoints: [],
     freeText: '',
     suggestedKey: '',
-    translation: '',
+    translations: [],  // inicializado como array vazio
     repo: '',
     legalImplication: false,
     screenshot: null
   };
+  
 
   const [errors, setErrors] = useState({
     module: false,
@@ -62,18 +63,41 @@ const ProjectDetail: React.FC = () => {
   }, [initialFormValues]);
 
   const validateFields = () => {
-    const newErrors = {
+    // Validações para o passo 1
+    const step1Errors = {
       module: formValues.module === '',
-      bu: formValues.bu === '',
-      breakpoints: formValues.breakpoints === '',
-      repo: step === 2 && formValues.repo === '',
+      bu: formValues.bu.length === 0,  // Verifica se o array 'bu' está vazio
+      breakpoints: formValues.breakpoints.length === 0, // Verifica se 'breakpoints' está vazio
+      repo: formValues.repo === '',  // Repo já está no passo 1 agora
       freeText: formValues.freeText === '',
-      translation: step === 2 && formValues.translation === '',
+      translation: false,  // Não validado no passo 1
     };
-    
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error);
+  
+    // Validações para o passo 2
+    const step2Errors = {
+      module: false,  // Não é necessário validar o módulo no passo 2
+      bu: false,      // Não é necessário validar 'bu' no passo 2
+      breakpoints: false, // Não é necessário validar 'breakpoints' no passo 2
+      repo: false,    // Já foi validado no passo 1
+      freeText: false, // Já foi validado no passo 1
+      translation: (formValues.translations || []).some((translation: string) => translation === '') // Garante que 'translations' é um array
+    };
+  
+    // Determina os erros com base no passo atual
+    const errors = step === 1 ? step1Errors : step2Errors;
+    setErrors(errors);
+  
+    // Retorna true apenas se não houver erros
+    return !Object.values(errors).some((error) => error);
   };
+  
+  
+  
+  const handleNextStep = useCallback(() => {
+    if (validateFields()) {
+      setStep((prevStep) => prevStep + 1);  // Avançar para o próximo passo
+    }
+  }, [validateFields]);
 
     const handleSubmit = useCallback(() => {
       if (validateFields()) {
@@ -82,11 +106,7 @@ const ProjectDetail: React.FC = () => {
       }
     }, [formValues, handleDialogClose]);
 
-    const handleNextStep = useCallback(() => {
-      if (validateFields()) {
-        setStep((prevStep) => prevStep + 1);
-      }
-    }, [validateFields]);
+   
 
   const handleEditKey = useCallback((dataToEdit: typeof formValues) => {
     setFormValues(dataToEdit);

@@ -1,18 +1,27 @@
 import React from 'react';
-import { Button, TextField, Typography, Box } from '@mui/material';
+import { Button, TextField, Typography, Box, MenuItem, FormControl, InputLabel, Select, Chip } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select'; 
 import FormControlInput from './FormControlInput';
 
 const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
 
+  // Handler para mudança de inputs (geral)
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (event: SelectChangeEvent<string>, name: string) => {
+  // Handler para mudanças em selects múltiplos (BU, Breakpoints)
+  const handleSelectChange = (event: SelectChangeEvent<string[]>, name: string) => {
     setFormData((prev: any) => ({ ...prev, [name]: event.target.value }));
   };
+
+  // Geração das keys sugeridas
+  const suggestedKeys = formData.module && formData.bu && formData.breakpoints && formData.freeText
+    ? formData.bu.flatMap((bu: string) => 
+        formData.breakpoints.map((bp: string) => 
+          `${formData.module}.${bu}.${bp}.${formData.freeText}`.toLowerCase()))
+    : [];
 
   return (
     <form>
@@ -25,27 +34,55 @@ const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
             value={formData.module}
             label="Module"
             options={['Module1', 'Module2', 'Module3']}
-            handleSelectChange={(e) => handleSelectChange(e, 'module')}
+            handleSelectChange={(e: SelectChangeEvent<string>) => handleSelectChange(e as SelectChangeEvent<string[]>, 'module')}
             name="module"
           />
 
-          <FormControlInput
-            errors={errors.bu}
-            value={formData.bu}
-            label="BU"
-            options={['BU1', 'BU2', 'BU3']}
-            handleSelectChange={(e) => handleSelectChange(e, 'bu')}
-            name="bu"
-          />
+          {/* Campo BU (Seleção Múltipla) */}
+          <FormControl fullWidth margin="normal">
+            <InputLabel>BU</InputLabel>
+            <Select
+              multiple
+              value={formData.bu}
+              onChange={(e) => handleSelectChange(e as SelectChangeEvent<string[]>, 'bu')}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value: string) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {['BU1', 'BU2', 'BU3'].map((bu) => (
+                <MenuItem key={bu} value={bu}>
+                  {bu}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-          <FormControlInput
-            errors={errors.breakpoints}
-            value={formData.breakpoints}
-            label="Breakpoints"
-            options={['BP1', 'BP2', 'BP3']}
-            handleSelectChange={(e) => handleSelectChange(e, 'breakpoints')}
-            name="breakpoints"
-          />
+          {/* Campo Breakpoints (Seleção Múltipla) */}
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Breakpoints</InputLabel>
+            <Select
+              multiple
+              value={formData.breakpoints}
+              onChange={(e) => handleSelectChange(e as SelectChangeEvent<string[]>, 'breakpoints')}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value: string) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {['BP1', 'BP2', 'BP3'].map((bp) => (
+                <MenuItem key={bp} value={bp}>
+                  {bp}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           <TextField
             label="Free text"
@@ -59,8 +96,18 @@ const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
             required
           />
 
+          {/* Campo Repo adicionado ao Step 1 */}
+          <FormControlInput
+            errors={errors.repo}
+            value={formData.repo}
+            label="Repo"
+            options={['Repo1', 'Repo2', 'Repo3']}
+            handleSelectChange={(e: SelectChangeEvent<string>) => handleSelectChange(e as SelectChangeEvent<string[]>, 'repo')}
+            name="repo"
+          />
+
           <Typography variant="body1">
-            Suggested Key: {formData.module && formData.bu && formData.breakpoints && formData.freeText ? `${formData.module}.${formData.bu}.${formData.breakpoints}.${formData.freeText}`.toLowerCase() : 'N/A'}
+            Suggested Key: {suggestedKeys.length > 0 ? suggestedKeys.join(', ') : 'N/A'}
           </Typography>
         </>
       )}
@@ -69,28 +116,49 @@ const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
         <>
           <Typography variant="h5">Step 2</Typography>
 
-          <TextField
-            label="Translation (English)"
-            fullWidth
-            margin="normal"
-            name="translation"
-            value={formData.translation}
-            onChange={handleInputChange}
-            error={errors.translation}
-            helperText={errors.translation ? "This field is required." : ""}
-            required
-          />
+          {suggestedKeys.map((key: any, index: any) => (
+            <Box key={key} sx={{ mb: 2 }}>
+              <Typography variant="body1">Key: {key}</Typography>
 
-          <FormControlInput
-            errors={errors.repo}
-            value={formData.repo}
-            label="Repo"
-            options={['Repo1', 'Repo2', 'Repo3']}
-            handleSelectChange={(e) => handleSelectChange(e, 'repo')}
-            name="repo"
-          />
+              <TextField
+                label={`Translation for ${key}`}
+                fullWidth
+                margin="normal"
+                name={`translation_${index}`}
+                value={formData.translations?.[index] || ''}
+                onChange={(e) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    translations: {
+                      ...prev.translations,
+                      [index]: e.target.value,
+                    },
+                  }))
+                }
+                error={errors.translation}
+                helperText={errors.translation ? "This field is required." : ""}
+                required
+              />
 
-          <input type="file" accept="image/*" onChange={handleInputChange} />
+              <Button variant="contained" component="label">
+                Upload Screenshot
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      screenshots: {
+                        ...prev.screenshots,
+                        [index]: e.target.files?.[0],
+                      },
+                    }))
+                  }
+                />
+              </Button>
+            </Box>
+          ))}
         </>
       )}
     </form>

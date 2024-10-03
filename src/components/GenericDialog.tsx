@@ -26,9 +26,7 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
 }) => {
   const handleNext = () => {
     if (onNext) {
-      onNext();
-    } else if (setStep && step !== undefined && step < totalSteps!) {
-      setStep(step + 1);
+      onNext(); 
     }
   };
 
