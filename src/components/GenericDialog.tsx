@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box } from '@mui/material';
 
 interface GenericDialogProps {
   open: boolean;
@@ -27,6 +27,8 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
   const handleNext = () => {
     if (onNext) {
       onNext(); 
+    } else if (setStep && step !== undefined && step < totalSteps!) {
+      setStep(step + 1)
     }
   };
 
@@ -37,36 +39,52 @@ const GenericDialog: React.FC<GenericDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary">
-          Cancel
-        </Button>
-
-        {step && setStep && totalSteps ? (
-          <>
-            {step > 1 && (
-              <Button onClick={handlePrev} color="primary">
+        <Box 
+          display="flex"
+          justifyContent="space-between"
+          width="100%"
+          mb={2}
+          mx={2}
+        >
+          <Box>
+            <Button 
+              onClick={onClose} 
+              color="secondary"
+              variant='outlined'
+              sx={{ mr:1 }}
+            >
+              Cancel
+            </Button>
+            {step && step > 1 && (
+              <Button onClick={handlePrev} color='primary' variant='outlined'>
                 Prev
               </Button>
             )}
-            {step < totalSteps ? (
-              <Button onClick={handleNext} color="primary">
-                Next
-              </Button>
-            ) : (
-              <Button onClick={onSubmit} color="primary">
-                Submit
-              </Button>
-            )}
-          </>
-        ) : (
-          <Button onClick={onSubmit} color="primary">
-            Submit
-          </Button>
-        )}
+          </Box>
+          <Box>
+          {step && setStep && totalSteps ? (
+            <>
+              {step < totalSteps ? (
+                <Button onClick={handleNext} color="primary" variant='outlined'>
+                  Next
+                </Button>
+              ) : (
+                <Button onClick={onSubmit} color="primary" variant='outlined'>
+                  Submit
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button onClick={onSubmit} color="primary" variant='outlined'>
+              Submit
+            </Button>
+          )}
+          </Box>
+        </Box>
       </DialogActions>
     </Dialog>
   );

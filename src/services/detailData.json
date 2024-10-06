@@ -4,15 +4,79 @@
     "keys":[
         {
             "id": "settings.registration.cancel", 
-            "translation": "Cancel"
+            "module": "Module1",
+            "bu": "BU2", 
+            "freeText": "test",
+            "legalImplications": true, 
+            "repo": "Repo1",
+            "translation": "Cancel", 
+            "screenshot": null
         }, 
         {
-            "id": "settings.registration.save", 
-            "translation": "Save"
-        },
-        {
-            "id": "settings.name", 
-            "translation": "Settings"
+            "id": "settings.registration.cancel", 
+            "module": "Module2",
+            "bu": "BU1", 
+            "freeText": "test123",
+            "legalImplications": false, 
+            "repo": "Repo2",
+            "translation": "Save", 
+            "screenshot": null
         }
-    ]
+    ],
+    "newKeys": {
+        "keys_unmodified":[
+            {
+                "id": "settings.registration.cancel", 
+                "module": "Module1",
+                "bu": "BU2", 
+                "freeText": "test",
+                "legalImplications": true, 
+                "repo": "Repo1",
+                "translation": "Cancel", 
+                "screenshot": null
+            }, 
+            {
+                "id": "settings.registration.cancel", 
+                "module": "Module2",
+                "bu": "BU1", 
+                "freeText": "test123",
+                "legalImplications": false, 
+                "repo": "Repo2",
+                "translation": "Save", 
+                "screenshot": null
+            }
+        ],
+        "keys_modified":[
+            {
+                "type": "add", 
+                "before": null,
+                "after": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }, 
+            {
+                "type": "add", 
+                "after": null,
+                "before": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }
+        ]
+        
+    }
+
 }

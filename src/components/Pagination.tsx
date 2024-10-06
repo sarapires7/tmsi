@@ -5,10 +5,16 @@ interface PaginationProps {
     totalPages: number;
     currentPage: number;
     onPageChange: (page: number) => void
+    count: number;
+    page: number;
+    onChange: (_event: React.ChangeEvent<unknown>, value: number) => void;
+    color: string;
+    showFirstButton: boolean;
+    showLastButton: any;
 }
 
 const Pagination: React.FC<PaginationProps> = ({ totalPages, currentPage, onPageChange }) => {
-    const handleChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    const handleChange = (page: number) => {
         onPageChange(page)
     }
 
@@ -17,7 +23,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalPages, currentPage, onPage
             <MuiPagination
                 count={totalPages}
                 page={currentPage}
-                onChange={handleChange}
+                onChange={() => handleChange(currentPage)}
                 color='primary'
             />
         </Box>

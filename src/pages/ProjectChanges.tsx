@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, TextField } from '@mui/material';
-import KeyList from '../components/KeyList';
+import { Container, Typography, Box, TextField } from '@mui/material';
 import ChangeData from '../services/dataChanges.json';
 import AppLayout from '../components/AppLayout';
-import FilterKeys from '../components/FilterKeys';
-import { ChangeProps } from '../types/types';
 import GenericDialog from '../components/GenericDialog';
-import KeyItem from '../components/KeyItem';
+import AccordionItems from '../components/AccordionItems';
 import Loading from '../components/Loading';
+import HeaderTitle from '../components/HeaderTitle';
+import HeaderActions from '../components/HeaderActions';
+
 
 const ProjectChanges: React.FC = () => {
+  const navigate = useNavigate();
+
   const { id } = useParams<{ id: string }>();
   const [changes, setChanges] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formValues, setFormValues] = useState({
-    issue: '',
-  });
-
-  const navigate = useNavigate();
+  const [formValues, setFormValues] = useState("")
+  const [isValid, setIsValid] = useState(false)
 
   useEffect(() => {
     const fetchChanges = async () => {
@@ -40,38 +39,46 @@ const ProjectChanges: React.FC = () => {
     fetchChanges();
   }, [id]);
 
+  console.log(changes)
+
   const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setFormValues('')
+  };
 
   const handleAddChange = () => {
-    setChanges([
-      ...changes, 
-      { 
-        id: Date.now().toString(), 
-        issue: formValues.issue, 
-        keys_modified: 
-          [
-            {
-                type: "add",
-                before: null,
-                after: {
-                    key: "settings_close",
-                    value: "Close"
-                }
-
-            }
-          ], 
-      }]);
-    console.log('Form Submitted:', formValues);
-    handleDialogClose(); 
+    if(formValues.trim() === ''){
+      setIsValid(true)
+    } else {
+      setIsValid(false)
+      setChanges([
+        ...changes, 
+        { 
+          id: Date.now().toString(), 
+          issue: formValues, 
+          keys_modified: [], 
+          keys_unmodified: [], 
+        }]);
+      console.log('Form Submitted:', formValues);
+      handleDialogClose(); 
+    }
+    
   };
+
+  const handleChangeFormValue = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormValues(e.target.value.toUpperCase())
+    if (isValid && e.target.value.trim() !== ""){
+      setIsValid(false)
+    }
+  }
 
   const handleEditChange = (id: string) => {
     navigate(`${id}/keys`);
   };
 
   const handleDeleteChange = (change: string) => {
-    const deleteChange = changes.filter((item: { id:string }) => item.id !== change)
+    const deleteChange = changes.filter((item: { id: string }) => item.id !== change)
     setChanges(deleteChange);
   };
 
@@ -86,36 +93,25 @@ const ProjectChanges: React.FC = () => {
   return (
     <AppLayout>
       <Container>
-        <Typography variant="h4" gutterBottom sx={{ mt: 4 }}>
-          Changes
-        </Typography>
-
-        <Box display='flex' alignItems='center' justifyContent='space-between' p={2}>
-            <FilterKeys 
-              filter={filter} 
-              onFilterChange={(e) => setFilter(e.target.value)} 
-              label="Search by issue..." 
-            />
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => handleDialogOpen()} 
-              sx={{ mt: 2 }}
-            >
-                Add change
-            </Button>
-          </Box>
-
-        <KeyList
-          items={changes}
+        <HeaderTitle page="changes" />
+        <HeaderActions 
           filter={filter}
-          onEdit={(item) => handleEditChange(item.id)}
-          onDelete={(item) => handleDeleteChange(item.id)}
-          renderItem={(item) => (
-            <KeyItem id='Issue' translation={item.issue} />
-          )}
-          getItemKey={(item) => item.issue.toLowerCase()}
+          setFilter={(e) => setFilter(e.target.value)}
+          handleDialogOpen={() => handleDialogOpen()}
+          title="Add change"
+          label="Search by issue..."
         />
+
+        {changes && changes
+          .map((change: any) => (
+            <AccordionItems 
+              key={change.id}
+              change={change}
+              onEdit={() => handleEditChange(change.id)}
+              onDelete={() => handleEditChange(change.id)}
+            />
+          ))
+        }
 
       <GenericDialog
         open={dialogOpen}
@@ -126,10 +122,13 @@ const ProjectChanges: React.FC = () => {
         <Box sx={{ p: 2 }}>
           <TextField
             label="Issue identifier..."
-            value={formValues.issue}
-            onChange={(e) => setFormValues({ ...formValues, issue: e.target.value.toUpperCase() })}
+            value={formValues}
+            onChange={handleChangeFormValue}
             fullWidth
             margin="normal"
+            required
+            error={isValid}
+            helperText={isValid ? 'Prease, fill the issue' : ''}
           />
         </Box>
       </GenericDialog>

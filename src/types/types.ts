@@ -38,16 +38,6 @@ export interface Space {
   updatedAt: string;
 }
 
-export interface Key {
-  id: string;
-  translation: string;
-}
-
-export interface Keys {
-  keys: Key[];
-  filter: string;
-}
-
 export interface FilterKeysProps {
   filter: string;
   label: string;
@@ -55,19 +45,36 @@ export interface FilterKeysProps {
 }
 
 export interface ChangeProps {
-  changes: ChangeProps[];
-}
-
-export interface ChangeProps {
   id: string;
   issue: string;
-  keys_unmodified: string[];
+  keys_unmodified: Key[];
   keys_modified: ModificationProps[];
 }
 
 export interface ModificationProps {
+  id: string;
   type: string;
-  before: { key: string, value: string };
-  after: { key: string, value: string };
+  before: Key | null;
+  after: Key | null;
 }
 
+export interface Key {
+  id: string;
+  module: string;
+  breakpoints: any;
+  bu: any;
+  freeText: string;
+  legalImplications?: boolean;
+  repo: string;
+  translation: string;
+  screenshot?: string | null;
+  translations: any
+}
+
+export interface HeaderActionsProps {
+  filter: string;
+  setFilter: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDialogOpen: () => void;
+  label: string;
+  title: string;
+}

@@ -1,46 +1,115 @@
 [
+
     {
         "id": "1",
         "issue": "ATP-232",
-        "keys_modified": [
+        "keys_unmodified":[
             {
-                "type": "add",
-                "before": null,
-                "after": {
-                    "key": "settings_close",
-                    "value": "Close"
-                }
-
-            },
+                "id": "settings.registration.cancel", 
+                "module": "Module1",
+                "bu": "BU2", 
+                "freeText": "test",
+                "legalImplications": true, 
+                "repo": "Repo1",
+                "translation": "Cancel", 
+                "screenshot": null
+            }, 
             {
-                "type": "delete",
-                "before": {
-                    "key": "settings_save",
-                    "value": "Save"
-                },
-                "after": null
-
+                "id": "settings.registration.cancel", 
+                "module": "Module2",
+                "bu": "BU1", 
+                "freeText": "test123",
+                "legalImplications": false, 
+                "repo": "Repo2",
+                "translation": "Save", 
+                "screenshot": null
             }
         ],
-        "keys_unmodified": ["settings.test1", "settings.test2", "settings.test3", "settings.test4"]
+        "keys_modified":[
+            {
+                "type": "add", 
+                "before": null,
+                "after": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }, 
+            {
+                "type": "add", 
+                "after": null,
+                "before": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }
+        ]
     },
     {
         "id": "2",
         "issue": "ATP-1112",
-        "keys_modified": [
+        "keys_unmodified":[
             {
-                "type": "update",
-                "before": {
-                    "key": "settings_name",
-                    "value": "Definitions"
-                },
-                "after": {
-                    "key": "settings_name",
-                    "value": "Settings"
-                }
-
+                "id": "settings.registration.cancel", 
+                "module": "Module1",
+                "bu": "BU2", 
+                "freeText": "test",
+                "legalImplications": true, 
+                "repo": "Repo1",
+                "translation": "Cancel", 
+                "screenshot": null
+            }, 
+            {
+                "id": "settings.registration.cancel", 
+                "module": "Module2",
+                "bu": "BU1", 
+                "freeText": "test123",
+                "legalImplications": false, 
+                "repo": "Repo2",
+                "translation": "Save", 
+                "screenshot": null
             }
         ],
-        "keys_unmodified": ["settings.test1", "settings.test2", "settings.test3", "settings.test4"]
+        "keys_modified":[
+            {
+                "type": "add", 
+                "before": null,
+                "after": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }, 
+            {
+                "type": "add", 
+                "after": null,
+                "before": {
+                    "id": "settings.registration.cancel", 
+                    "module": "Module1",
+                    "bu": "BU2", 
+                    "freeText": "test",
+                    "legalImplications": true, 
+                    "repo": "Repo1",
+                    "translation": "Cancel", 
+                    "screenshot": null
+                }
+            }
+        ]
     }
 ]

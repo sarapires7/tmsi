@@ -1,164 +1,245 @@
-import React from 'react';
-import { Button, TextField, Typography, Box, MenuItem, FormControl, InputLabel, Select, Chip } from '@mui/material';
+import React, { ChangeEvent } from 'react';
+import { Button, TextField, Typography, Box, Checkbox, Stepper, StepLabel, Step, FormControlLabel } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select'; 
 import FormControlInput from './FormControlInput';
+import FormControlMultipleInput from './FormControlMultipleInput';
+import { UploadFile } from '@mui/icons-material';
+import { Key, ModificationProps } from '../types/types'
 
-const AddKeyForm: React.FC<any> = ({ formData, setFormData, step, errors }) => {
+interface AddKeyFormProps {
+  formValues: Key | ModificationProps;
+  setFormValues: React.Dispatch<React.SetStateAction<ModificationProps | Key>>;
+  step: number;
+  errors: KeyForm;
+  setErrors: (item: any) => void
+}
+
+interface KeyForm {
+  [key: string]: boolean
+}
+
+const AddKeyForm: React.FC<AddKeyFormProps> = ({ formValues, setFormValues, step, errors, setErrors }) => {
 
   // Handler para mudança de inputs (geral)
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = event.target;
+    const isChecked = (event.target as HTMLInputElement).checked
+    setFormValues((prev: Key | ModificationProps) => ({ 
+      ...prev, 
+      [name]: type === "checkbox" ? isChecked : value 
+    }));
+
+    if(errors[name]) {
+      setErrors((prev: any) => ({...prev, [name]: false}))
+    }
   };
 
   // Handler para mudanças em selects múltiplos (BU, Breakpoints)
   const handleSelectChange = (event: SelectChangeEvent<string[]>, name: string) => {
-    setFormData((prev: any) => ({ ...prev, [name]: event.target.value }));
+    setFormValues((prev: Key | ModificationProps) => ({ 
+      ...prev, 
+      [name]: event.target.value 
+    }));
+    if (errors[name]) {
+      setErrors((prev: any) => ({...prev, [name]: false}))
+    }
   };
 
-  // Geração das keys sugeridas
-  const suggestedKeys = formData.module && formData.bu && formData.breakpoints && formData.freeText
-    ? formData.bu.flatMap((bu: string) => 
-        formData.breakpoints.map((bp: string) => 
-          `${formData.module}.${bu}.${bp}.${formData.freeText}`.toLowerCase()))
-    : [];
+  const handleSelectMultipleChanges = (event: any, name: string) => {
+    const value =  event.target.value as string[]
+    setFormValues((prev: Key | ModificationProps) => ({ 
+      ...prev, 
+      [name]: value 
+    }));
+    if (errors[name]) {
+      setErrors((prev: any) => ({...prev, [name]: false}))
+    }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file =  event.target.files?.[0];
+    if(file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setFormValues((prev:any) => ({ 
+          ...prev, 
+          screenshot: base64String 
+        }));
+        reader.readAsDataURL(file)
+      }
+    }
+  };
+
+  const suggestedKeys = 
+  (formValues as Key).module &&
+  (formValues as Key).bu &&
+  (formValues as Key).breakpoints &&
+  (formValues as Key).freeText
+    ? (formValues as Key)?.bu.flatMap((bu: string) =>
+      (formValues as Key)?.breakpoints.map((bp: string) =>
+        `${(formValues as Key).module}.${bu}.${bp}.${(formValues as Key).freeText}`.toLowerCase()
+      )
+    ) : [];
 
   return (
     <form>
+      <Box mb={6}>
+        <Stepper activeStep={step - 1}>
+          {["Step 1: Key Details", "Step 2: Translation Details"].map(
+            (label) => {
+              return (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              )
+            }
+          )}
+        </Stepper>
+      </Box>
       {step === 1 && (
         <>
-          <Typography variant="h5">Step 1</Typography>
-
           <FormControlInput
             errors={errors.module}
-            value={formData.module}
+            value={(formValues as Key).module}
             label="Module"
             options={['Module1', 'Module2', 'Module3']}
-            handleSelectChange={(e: SelectChangeEvent<string>) => handleSelectChange(e as SelectChangeEvent<string[]>, 'module')}
+            handleSelectChange={(e: any) => handleSelectChange(e, 'module')}
             name="module"
           />
 
-          {/* Campo BU (Seleção Múltipla) */}
-          <FormControl fullWidth margin="normal">
-            <InputLabel>BU</InputLabel>
-            <Select
-              multiple
-              value={formData.bu}
-              onChange={(e) => handleSelectChange(e as SelectChangeEvent<string[]>, 'bu')}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value: string) => (
-                    <Chip key={value} label={value} />
-                  ))}
-                </Box>
-              )}
-            >
-              {['BU1', 'BU2', 'BU3'].map((bu) => (
-                <MenuItem key={bu} value={bu}>
-                  {bu}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <FormControlMultipleInput
+            errors={errors.bu}
+            value={(formValues as Key).bu}
+            label="BU"
+            options={['BU1', 'BU2', 'BU3']}
+            handleSelectChange={(e) => handleSelectMultipleChanges(e, 'bu')}
+            name="bu"
+          />
 
-          {/* Campo Breakpoints (Seleção Múltipla) */}
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Breakpoints</InputLabel>
-            <Select
-              multiple
-              value={formData.breakpoints}
-              onChange={(e) => handleSelectChange(e as SelectChangeEvent<string[]>, 'breakpoints')}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value: string) => (
-                    <Chip key={value} label={value} />
-                  ))}
-                </Box>
-              )}
-            >
-              {['BP1', 'BP2', 'BP3'].map((bp) => (
-                <MenuItem key={bp} value={bp}>
-                  {bp}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          
+          <FormControlMultipleInput
+            errors={errors.breakpoints}
+            value={(formValues as Key).breakpoints}
+            label="Breakpoints"
+            options={['lg', 'md', 'sm']}
+            handleSelectChange={(e) => handleSelectMultipleChanges(e, 'breakpoints')}
+            name="breakpoints"
+          />
 
           <TextField
+            variant='standard'
             label="Free text"
             fullWidth
             margin="normal"
             name="freeText"
-            value={formData.freeText}
+            value={(formValues as Key).freeText}
             onChange={handleInputChange}
-            error={errors.freeText}
-            helperText={errors.freeText ? "This field is required." : ""}
-            required
+            
           />
 
           {/* Campo Repo adicionado ao Step 1 */}
           <FormControlInput
             errors={errors.repo}
-            value={formData.repo}
+            value={(formValues as Key).repo}
             label="Repo"
             options={['Repo1', 'Repo2', 'Repo3']}
-            handleSelectChange={(e: SelectChangeEvent<string>) => handleSelectChange(e as SelectChangeEvent<string[]>, 'repo')}
+            handleSelectChange={(e: any) => handleSelectChange(e, 'repo')}
             name="repo"
           />
 
-          <Typography variant="body1">
-            Suggested Key: {suggestedKeys.length > 0 ? suggestedKeys.join(', ') : 'N/A'}
-          </Typography>
+          <Box mt={2}>
+            <FormControlLabel 
+              control={
+                <Checkbox 
+                  name="legalImplications"
+                  checked={(formValues as Key).legalImplications}
+                  onChange={handleInputChange}
+                />
+              }
+              label="legal implications"
+            />
+          </Box>
+
+          <Box
+            component="section"
+            sx={{
+              p:2,
+              mt: 2,
+              border: "1px dashed grey",
+              display: 'flex',
+              justifyContent: "center"
+            }}
+          >
+            <Typography
+              variant='subtitle2'
+              sx= {{fontWeight: 'bold', color: 'primary.main'}}
+            >
+              {(formValues as Key).module ||
+              (formValues as Key).bu ||
+              (formValues as Key).breakpoints ||
+              (formValues as Key).freeText
+                ? `${(formValues as Key).module || '[module]'}.${(formValues as Key).bu || '[bu]'}.${(formValues as Key).breakpoints || '[breakpoints]'}.${(formValues as Key).freeText || '[freeText]'}`
+                : "Key preview..."
+              }
+            </Typography>
+          </Box>
         </>
       )}
 
       {step === 2 && (
         <>
-          <Typography variant="h5">Step 2</Typography>
+        {suggestedKeys.map((key: string, index: number) => (
+  <Box
+    key={key}
+    sx={{ mb: 2 }}
+    display="flex"
+    justifyContent="space-between"
+    alignItems="center"
+  >
+    <TextField
+      variant="standard"
+      label={`Translation for ${key}`}
+      margin="normal"
+      sx={{ width: '60%' }}
+      name={`translation_${index}`}
+      value={(formValues as Key).translations?.[index] || ""}
+      onChange={(e) =>
+        setFormValues((prev: any) => ({
+          ...prev,
+          translations: {
+            ...prev.translations,
+            [index]: e.target.value
+          }
+        }))
+      }
+      error={errors.translation}
+      helperText={errors.translation ? "This field is required." : ""}
+      required
+    />
 
-          {suggestedKeys.map((key: any, index: any) => (
-            <Box key={key} sx={{ mb: 2 }}>
-              <Typography variant="body1">Key: {key}</Typography>
-
-              <TextField
-                label={`Translation for ${key}`}
-                fullWidth
-                margin="normal"
-                name={`translation_${index}`}
-                value={formData.translations?.[index] || ''}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    translations: {
-                      ...prev.translations,
-                      [index]: e.target.value,
-                    },
-                  }))
-                }
-                error={errors.translation}
-                helperText={errors.translation ? "This field is required." : ""}
-                required
-              />
-
-              <Button variant="contained" component="label">
-                Upload Screenshot
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={(e) =>
-                    setFormData((prev: any) => ({
-                      ...prev,
-                      screenshots: {
-                        ...prev.screenshots,
-                        [index]: e.target.files?.[0],
-                      },
-                    }))
-                  }
-                />
-              </Button>
-            </Box>
-          ))}
+    {!(formValues as Key).screenshot ? (
+      <Button
+        variant="outlined"
+        component="label"
+        startIcon={<UploadFile />}
+        sx={{ mt: 2 }}
+      >
+        Upload screenshot
+        <input
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+      </Button>
+    ) : (
+      <Typography variant="body2" color="textSecondary" sx={{ mt: 1, textAlign: "center" }}>
+        File Uploaded
+      </Typography>
+    )}
+  </Box>
+))}
         </>
       )}
     </form>
