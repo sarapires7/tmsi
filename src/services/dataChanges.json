@@ -41,7 +41,7 @@
                 }
             }, 
             {
-                "type": "add", 
+                "type": "delete", 
                 "after": null,
                 "before": {
                     "id": "settings.registration.cancel", 

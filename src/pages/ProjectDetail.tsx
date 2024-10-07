@@ -120,6 +120,10 @@ const ProjectDetail: React.FC = () => {
     console.log(id);
   }, []);
 
+  const handleUndoDelete = useCallback((item: ModificationProps | Key) => {
+    console.log("Undo delete for key:", item?.id || '');
+  }, []);
+
   const handleSubmitKeyForm = async () => {
     // Start progress modal
     setProgressVisible(true);
@@ -211,13 +215,14 @@ const ProjectDetail: React.FC = () => {
         
         {change !== null ? (
           <KeyList
-            items={combinedKeys}
-            filter={inputValue}
-            renderItem={(item) => renderKeys(item)}
-            getItemKey={(item => renderKeyIds(item))}
-            onEdit={(item) => handleEditKey(item)}
-            onDelete={(item) => handleDeleteKey(item.id)}
-          />
+          items={combinedKeys}
+          filter={inputValue}
+          renderItem={(item) => renderKeys(item)}
+          getItemKey={(item) => renderKeyIds(item)}
+          onEdit={(item) => handleEditKey(item)}
+          onDelete={(item) => handleDeleteKey(item.id)}
+          onUndoDelete={(item) => handleUndoDelete(item)}  // Adicionando o handler de Undo
+        />
         ) : (
           <Typography>This project does not have any key yet!</Typography>
         )}
