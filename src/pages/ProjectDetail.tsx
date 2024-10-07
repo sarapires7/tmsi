@@ -13,19 +13,62 @@ import Loading from '../components/Loading';
 import HeaderTitle from '../components/HeaderTitle';
 import HeaderActions from '../components/HeaderActions';
 
-const initialFormValues = {
+type FormValuesAdd = {
+  id: string;
+  module: string;
+  bu: string[];
+  breakpoints: string[];
+  freeText: string;
+  suggestedKey: string;
+  translation: string;
+  repo: string;
+  legalImplication: boolean;
+  screenshot: File | null;
+  translations: string[];
+};
+
+type FormValuesEdit = {
+  id: string;
+  module: string;
+  bu: string;
+  breakpoints: string;
+  freeText: string;
+  suggestedKey: string;
+  translation: string;
+  repo: string;
+  legalImplication: boolean;
+  screenshot: File | null;
+  translations: string;
+};
+
+const initialFormValuesAdd: FormValuesAdd = {
   id: '',
   module: '',
   bu: [],
   breakpoints: [],
   freeText: '',
   suggestedKey: '',
-  translation: '',  
+  translation: '',
   repo: '',
   legalImplication: false,
   screenshot: null,
   translations: []
 };
+
+const initialFormValuesEdit: FormValuesEdit = {
+  id: '',
+  module: '',
+  bu: '',
+  breakpoints: '',
+  freeText: '',
+  suggestedKey: '',
+  translation: '',
+  repo: '',
+  legalImplication: false,
+  screenshot: null,
+  translations: ''
+};
+
 
 interface ErrorsForm {
   [key: string]: any
@@ -52,7 +95,7 @@ const ProjectDetail: React.FC = () => {
     translation: false
   });
 
-  const [formValues, setFormValues] = useState<Key | ModificationProps >(initialFormValues);
+  const [formValues, setFormValues] = useState<any>(initialFormValuesAdd);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -79,22 +122,37 @@ const ProjectDetail: React.FC = () => {
 
   const handleDialogClose = useCallback(() => {
     setDialogOpen(false);
-    setFormValues(initialFormValues);
-  }, [initialFormValues]);
+    setFormValues(initialFormValuesAdd);
+  }, [initialFormValuesAdd]);
+
+  const convertForEdit = (data: FormValuesAdd): FormValuesEdit => ({
+    ...data,
+    bu: Array.isArray(data.bu) ? data.bu.join(', ') : data.bu,
+    breakpoints: Array.isArray(data.breakpoints) ? data.breakpoints.join(', ') : data.breakpoints,
+    translations: Array.isArray(data.translations) ? data.translations.join(', ') : data.translations
+  });
+
+  const convertForAdd = (data: FormValuesEdit): FormValuesAdd => ({
+    ...data,
+    bu: typeof data.bu === 'string' ? data.bu.split(',').map(item => item.trim()) : data.bu,
+    breakpoints: typeof data.breakpoints === 'string' ? data.breakpoints.split(',').map(item => item.trim()) : data.breakpoints,
+    translations: typeof data.translations === 'string' ? data.translations.split(',').map(item => item.trim()) : data.translations
+  });
+  
 
   const validateFields = useCallback(() => {
     const newErrors = {
-      module:(formValues as Key).module === "",
-      bu: (formValues as Key).bu.length === 0,
-      breakpoints: (formValues as Key).breakpoints.length === 0,
-      repo: step === 2 && (formValues as Key).repo === '',
-      freeText: (formValues as Key).freeText,
-      translation: step === 2 && (formValues as Key).translation === ''
-    }
-
+      module: formValues.module === "",
+      bu: Array.isArray(formValues.bu) ? formValues.bu.length === 0 : formValues.bu === '',
+      breakpoints: Array.isArray(formValues.breakpoints) ? formValues.breakpoints.length === 0 : formValues.breakpoints === '',
+      repo: step === 2 && formValues.repo === '',
+      freeText: formValues.freeText === '',
+      translation: step === 2 && formValues.translation === ''
+    };
+  
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error)
-  }, [formValues, step]);
+  }, [formValues, step]);  
 
   
   const handleNextStep = useCallback(() => {
@@ -105,13 +163,16 @@ const ProjectDetail: React.FC = () => {
 
   const handleSubmit = useCallback(() => {
     if (validateFields()) {
+      const convertedData = convertForAdd(formValues);  // Converte de volta para arrays
+      console.log('Submitting data:', convertedData);   // Pode ser enviada para a API
       handleDialogClose();
     }
-  }, [validateFields, handleDialogClose]);
+  }, [formValues, validateFields, handleDialogClose]);
 
    
-  const handleEditKey = useCallback((dataToEdit: typeof formValues) => {
-    setFormValues(dataToEdit);
+  const handleEditKey = useCallback((dataToEdit: FormValuesAdd) => {
+    const convertedData = convertForEdit(dataToEdit);
+    setFormValues(convertedData);  // Usa os dados convertidos para strings
     setStep(1); // Volta para o primeiro passo ao editar
     setDialogOpen(true);
   }, []);
