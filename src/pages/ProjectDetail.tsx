@@ -1,13 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, LinearProgress } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Button,
+  Box,
+  LinearProgress,
+  Breadcrumbs,
+  Link,
+} from '@mui/material';
 import KeyList from '../components/KeyList';
 import KeyItemModified from '../components/KeyItemModified';
 import DetailData from '../services/dataChanges.json';
 import AppLayout from '../components/AppLayout';
 import { ChangeProps, Key, ModificationProps } from '../types/types';
 import GenericDialog from '../components/GenericDialog';
-import AddKeyForm from '../components/AddKeyForm'; 
+import AddKeyForm from '../components/AddKeyForm';
 import KeyItem from '../components/KeyItem';
 import Loading from '../components/Loading';
 import HeaderTitle from '../components/HeaderTitle';
@@ -52,7 +60,7 @@ const initialFormValuesAdd: FormValuesAdd = {
   repo: '',
   legalImplication: false,
   screenshot: null,
-  translations: []
+  translations: [],
 };
 
 const initialFormValuesEdit: FormValuesEdit = {
@@ -66,12 +74,11 @@ const initialFormValuesEdit: FormValuesEdit = {
   repo: '',
   legalImplication: false,
   screenshot: null,
-  translations: ''
+  translations: '',
 };
 
-
 interface ErrorsForm {
-  [key: string]: any
+  [key: string]: any;
 }
 
 const ProjectDetail: React.FC = () => {
@@ -92,7 +99,7 @@ const ProjectDetail: React.FC = () => {
     breakpoints: false,
     repo: false,
     freeText: false,
-    translation: false
+    translation: false,
   });
 
   const [formValues, setFormValues] = useState<any>(initialFormValuesAdd);
@@ -101,9 +108,9 @@ const ProjectDetail: React.FC = () => {
     const fetchProject = async () => {
       try {
         const changesList: any = DetailData;
-        const change = changesList.filter((item: {id:string | undefined}) => item.id === id)
+        const change = changesList.filter((item: { id: string | undefined }) => item.id === id);
         if (change) {
-          setChanges(change[0])
+          setChanges(change[0]);
         }
       } catch (err) {
         setError('Failed to load project details.');
@@ -129,50 +136,47 @@ const ProjectDetail: React.FC = () => {
     ...data,
     bu: Array.isArray(data.bu) ? data.bu.join(', ') : data.bu,
     breakpoints: Array.isArray(data.breakpoints) ? data.breakpoints.join(', ') : data.breakpoints,
-    translations: Array.isArray(data.translations) ? data.translations.join(', ') : data.translations
+    translations: Array.isArray(data.translations) ? data.translations.join(', ') : data.translations,
   });
 
   const convertForAdd = (data: FormValuesEdit): FormValuesAdd => ({
     ...data,
     bu: typeof data.bu === 'string' ? data.bu.split(',').map(item => item.trim()) : data.bu,
     breakpoints: typeof data.breakpoints === 'string' ? data.breakpoints.split(',').map(item => item.trim()) : data.breakpoints,
-    translations: typeof data.translations === 'string' ? data.translations.split(',').map(item => item.trim()) : data.translations
+    translations: typeof data.translations === 'string' ? data.translations.split(',').map(item => item.trim()) : data.translations,
   });
-  
 
   const validateFields = useCallback(() => {
     const newErrors = {
-      module: formValues.module === "",
+      module: formValues.module === '',
       bu: Array.isArray(formValues.bu) ? formValues.bu.length === 0 : formValues.bu === '',
       breakpoints: Array.isArray(formValues.breakpoints) ? formValues.breakpoints.length === 0 : formValues.breakpoints === '',
       repo: step === 2 && formValues.repo === '',
       freeText: formValues.freeText === '',
-      translation: step === 2 && formValues.translation === ''
+      translation: step === 2 && formValues.translation === '',
     };
-  
-    setErrors(newErrors);
-    return !Object.values(newErrors).some((error) => error)
-  }, [formValues, step]);  
 
-  
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
+  }, [formValues, step]);
+
   const handleNextStep = useCallback(() => {
     if (validateFields()) {
-      setStep((prevStep) => prevStep + 1);  // Avançar para o próximo passo
+      setStep((prevStep) => prevStep + 1); // Avançar para o próximo passo
     }
   }, [validateFields]);
 
   const handleSubmit = useCallback(() => {
     if (validateFields()) {
-      const convertedData = convertForAdd(formValues);  // Converte de volta para arrays
-      console.log('Submitting data:', convertedData);   // Pode ser enviada para a API
+      const convertedData = convertForAdd(formValues); // Converte de volta para arrays
+      console.log('Submitting data:', convertedData); // Pode ser enviada para a API
       handleDialogClose();
     }
   }, [formValues, validateFields, handleDialogClose]);
 
-   
   const handleEditKey = useCallback((dataToEdit: FormValuesAdd) => {
     const convertedData = convertForEdit(dataToEdit);
-    setFormValues(convertedData);  // Usa os dados convertidos para strings
+    setFormValues(convertedData); // Usa os dados convertidos para strings
     setStep(1); // Volta para o primeiro passo ao editar
     setDialogOpen(true);
   }, []);
@@ -221,7 +225,7 @@ const ProjectDetail: React.FC = () => {
     } finally {
       setTimeout(() => {
         setProgressVisible(false); // Hide progress modal after a slight delay
-        setFormValues(initialFormValues); // Reset form values after submission
+        setFormValues(initialFormValuesAdd); // Reset form values after submission
       }, 500); // Delay for user to see 100% before closing
     }
   };
@@ -239,26 +243,26 @@ const ProjectDetail: React.FC = () => {
     : [];
 
   const renderKeys = (item: ModificationProps | Key | null) => {
-    if(item && 'type' in item) {
-      if(item.type === 'add' || item.type === 'update') {
-        return <KeyItemModified item={item} index={item?.after?.id} />
+    if (item && 'type' in item) {
+      if (item.type === 'add' || item.type === 'update') {
+        return <KeyItemModified item={item} index={item?.after?.id} />;
       } else {
-        return <KeyItemModified item={item} index={item?.before?.id} />
+        return <KeyItemModified item={item} index={item?.before?.id} />;
       }
     } else {
-      return <KeyItem item={item} />
+      return <KeyItem item={item} />;
     }
-  }
+  };
 
   const renderKeyIds = (item: ModificationProps | Key | null) => {
-    if(item && 'type' in item) {
-      if(item.type === 'add' || item.type === 'update') {
-        return item?.after?.id || ''
+    if (item && 'type' in item) {
+      if (item.type === 'add' || item.type === 'update') {
+        return item?.after?.id || '';
       } else {
-        return item?.before?.id || ''
+        return item?.before?.id || '';
       }
     } else {
-      return item?.id || ''
+      return item?.id || '';
     }
   }
 
@@ -266,29 +270,41 @@ const ProjectDetail: React.FC = () => {
     <AppLayout>
       <Container>
         <HeaderTitle page={change?.issue || 'Change'} />
+        
+        {/* Breadcrumbs */}
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: 2 }}>
+        <Link color="inherit" href="/projects">
+            Projects
+          </Link>
+          <Link color="inherit" href={`/projects/${id}/changes`}>
+            Changes
+          </Link>
+          <Typography color="text.primary">{change?.issue || 'Change'}</Typography>
+        </Breadcrumbs>
+
         <HeaderActions
           filter={inputValue}
           setFilter={(e) => setInputValues(e.target.value)}
           handleDialogOpen={() => handleDialogOpen()}
-          title='Add key'
-          label='Search by key'
+          title="Add key"
+          label="Search by key"
         />
-        
+
         {change !== null ? (
           <KeyList
-          items={combinedKeys}
-          filter={inputValue}
-          renderItem={(item) => renderKeys(item)}
-          getItemKey={(item) => renderKeyIds(item)}
-          onEdit={(item) => handleEditKey(item)}
-          onDelete={(item) => handleDeleteKey(item.id)}
-          onUndoDelete={(item) => handleUndoDelete(item)}  // Adicionando o handler de Undo
-        />
+            items={combinedKeys}
+            filter={inputValue}
+            renderItem={(item) => renderKeys(item)}
+            getItemKey={(item) => renderKeyIds(item)}
+            onDelete={(item) => handleDeleteKey(item.id)}
+            onUndoDelete={(item) => handleUndoDelete(item)} // Adicionando o handler de Undo
+          />
         ) : (
           <Typography>This project does not have any key yet!</Typography>
         )}
+        
         <Box display="flex" alignItems="center" justifyContent="center" p={2}>
-          <Button variant='contained' color='primary' onClick={handleSubmitKeyForm} sx={{marginTop: 2}}>
+          <Button variant="contained" color="primary" onClick={handleSubmitKeyForm} sx={{ marginTop: 2 }}>
             Submit
           </Button>
         </Box>
@@ -316,10 +332,10 @@ const ProjectDetail: React.FC = () => {
         totalSteps={totalSteps}
         onNext={handleNextStep}
       >
-        <AddKeyForm 
-          formValues={formValues} 
-          setFormValues={setFormValues} 
-          step={step} 
+        <AddKeyForm
+          formValues={formValues}
+          setFormValues={setFormValues}
+          step={step}
           errors={errors}
           setErrors={setErrors}
         />

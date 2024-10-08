@@ -5,7 +5,9 @@ import { Projects } from '../types/types';
 import { 
   Grid2,
   Alert, 
-  Container
+  Container,
+  Typography,
+  Box
 } from '@mui/material';
 import Loading from '../components/Loading'
 import Pagination from '../components/Pagination';
@@ -65,12 +67,19 @@ const ProjectsList: React.FC = () => {
     <AppLayout>
       <Container>
         <HeaderTitle page="Phrase Projects" />
-
+        {projects.length === 0 ? (
+          <Box textAlign="center" mt={4}>
+            <Typography variant="h6" color="textSecondary">
+              No projects available.
+            </Typography>
+          </Box>
+        ) : (
         <Grid2 container spacing={3}>
           {currentItems.map((item) => (
             item && <ProjectItem key={item.id} item={item} />
           ))}
         </Grid2>
+        )}
         {/* Pagination */}
         <Container sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
           {/* <Pagination 

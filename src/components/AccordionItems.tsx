@@ -9,9 +9,8 @@ import {
     ListItem,
     Typography
 } from '@mui/material';
-import {ExpandMore, East} from '@mui/icons-material';
-import { Edit, Archive, Add, Remove } from '@mui/icons-material'
-import ModifiedItem from "./ModifiedItem";
+import { ExpandMore, East } from '@mui/icons-material';
+import { Edit, Archive, Add, Remove } from '@mui/icons-material';
 import { ChangeProps } from '../types/types';
 
 interface AccordionItemsProps {
@@ -26,55 +25,69 @@ const AccordionItems: React.FC<AccordionItemsProps> = ({
     onDelete
 }) => {
     const renderSwitchChangeType = (item: any) => {
+        let backgroundColor;
+        let icon;
+
+        // Define cores e ícones de acordo com o tipo de mudança
         switch (item.type) {
             case 'add':
-                return (
-                    <ModifiedItem 
-                        backgroundColor='#c8e6c9'
-                        icon={<Add fontSize='small' />}
-                        keyId={item?.after?.id}
-                        value={item?.after?.translation}
-                    />
-                );
+                backgroundColor = '#e8f5e9'; // Verde clarinho para adições
+                icon = <Add fontSize='small' color="success" />;
+                break;
             case 'update':
-                return (
-                    <Box 
-                        component="section" 
-                        sx={{ 
-                            p: 2,
-                            backgroundColor: '#ffe0b2',
-                            display: 'flex',
-                            width: '100%'
-                        }}
-                    >
-                        <Typography variant='body2' sx={{m1:1}}>
-                            <b>{item?.before?.id}:</b>
-                        </Typography>
-                        <Typography variant='body2'>
-                            <b>{item?.before?.translation}</b>
-                        </Typography>
-                        <East fontSize='small' sx={{mx: 4}} />
-                        <Typography variant='body2'>
-                            <b>{item?.after?.translation}</b>
-                        </Typography>
-                    </Box>
-                );
-                case 'delete':
-                    return (
-                        <ModifiedItem 
-                            backgroundColor='#c8e6c9'
-                            icon={<Add fontSize='small' />}
-                            keyId={item?.before?.id}
-                            value={item?.before?.translation}
-                        />
-                    );
-                default:
-                    return '';
+                backgroundColor = '#ffe0b2'; // Amarelo para atualizações
+                icon = <East fontSize='small' color="warning" />;
+                break;
+            case 'delete':
+                backgroundColor = '#ffcdd2'; // Vermelho claro para exclusões
+                icon = <Remove fontSize='small' color="error" />;
+                break;
+            default:
+                return null;
         }
+
+        return (
+            <ListItem sx={{ padding: 0 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        backgroundColor: backgroundColor,
+                        marginBottom: '4px',
+                        transition: 'background-color 0.3s',
+                        '&:hover': {
+                            backgroundColor: item.type === 'add' ? '#c8e6c9' // Tom mais escuro no hover
+                                            : item.type === 'delete' ? '#ef9a9a'
+                                            : '#ffe57f', // Cores no hover
+                        }
+                    }}
+                >
+                    {icon}
+                    <Typography sx={{ marginLeft: '8px', fontWeight: 'bold' }}>
+                        {item.type === 'update' ? (
+                            <>
+                                <span style={{ fontWeight: 'normal' }}>{item?.before?.id}: </span>
+                                <b>{item?.before?.translation}</b>
+                                <East fontSize='small' sx={{ mx: 2 }} />
+                                <b>{item?.after?.translation}</b>
+                            </>
+                        ) : (
+                            <>
+                                <b>{item?.before?.id}:</b> {item?.before?.translation}
+                            </>
+                        )}
+                    </Typography>
+                </Box>
+            </ListItem>
+        );
     };
 
     return (
-        <Accordion key={change.id} sx={{mb:2}}>
+        <Accordion key={change.id} sx={{ mb: 2 }}>
             <AccordionSummary
                 expandIcon={<ExpandMore />}
                 aria-controls="panel1-content"
@@ -86,7 +99,7 @@ const AccordionItems: React.FC<AccordionItemsProps> = ({
                     alignItems="center"
                     width="100%"
                 >
-                    <Typography sx={{fontWeight: 'bold'}}>{change.issue}</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{change.issue}</Typography>
                     <Box>
                         <IconButton
                             onClick={onEdit}
@@ -110,7 +123,7 @@ const AccordionItems: React.FC<AccordionItemsProps> = ({
             <AccordionDetails>
                 <List>
                     {change.keys_modified.length > 0 ? (
-                        change.keys_modified.map((item:any, index:number) => (
+                        change.keys_modified.map((item: any, index: number) => (
                             <ListItem key={index}>
                                 {renderSwitchChangeType(item)}
                             </ListItem>
@@ -123,7 +136,7 @@ const AccordionItems: React.FC<AccordionItemsProps> = ({
                 </List>
             </AccordionDetails>
         </Accordion>
-    )
+    );
 }
 
-export default AccordionItems
+export default AccordionItems;

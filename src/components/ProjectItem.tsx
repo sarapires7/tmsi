@@ -7,9 +7,10 @@ import {
     Typography,
     Avatar,
     CardHeader,
-    Divider
+    Divider,
+    IconButton
 } from '@mui/material';
-import { AccountCircle } from '@mui/icons-material';
+import { Settings, Folder } from '@mui/icons-material';
 import { Projects } from '../types/types';
 
 interface ProjectItemProps {
@@ -27,27 +28,46 @@ const ProjectItem: React.FC<ProjectItemProps> = (props) => {
                     cursor: 'pointer',
                 }}
             >
-                <Card variant='outlined' sx={{ borderRadius: 2, boxShadow: 3 }}>
-                    <CardHeader
+                <Card variant='outlined' sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)', 
+                      borderRadius: '8px',
+                      transition: 'transform 0.2s ease-in-out',
+                      '&:hover': { 
+                        transform: 'scale(1.03)', 
+                        boxShadow: '0 6px 15px rgba(0, 0, 0, 0.2)' 
+                      }
+                    }}>
+                        <CardHeader
                         avatar={
                             <Avatar>
-                                <AccountCircle />
+                                <Folder />
                             </Avatar>
                         }
-                        titleTypographyProps={
-                            <Typography variant='h6' sx={{ color: '#001950' }}>
+                        title={
+                            <Typography variant="h6" noWrap>
                                 {props.item.name}
                             </Typography>
                         }
-                        subheader={`Updated at: `} 
+                        action={
+                            <IconButton
+                                aria-label="settings"
+                                onClick={(e) => {
+                                    e.preventDefault(); // Evita que o clique no ícone navegue para o link
+                                    console.log('Open settings for project', props.item.id);
+                                }}
+                            >
+                                <Settings />
+                            </IconButton>
+                        }
+                        sx={{ paddingBottom: 0 }}
                     />
-                    <Divider />
-                    <CardContent>
-                        <Typography variant='body1' color="textSecondary">
-                            Account: {props.item.account.name}
-                        </Typography>
-                        <Typography variant='body2' color="textSecondary">
-                            Created at: 
+
+<CardContent>
+                        <Typography variant="body2" color="textSecondary">
+                            Updated at: {new Date().toLocaleDateString()} {/* Exemplo de data */}
                         </Typography>
                     </CardContent>
                 </Card>
