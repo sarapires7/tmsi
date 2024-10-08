@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
+// Criação do tema
 const theme = createTheme({
   palette: {
     primary: {
@@ -10,7 +11,31 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'Roboto, Arial, sans-serif',
+    fontFamily: 'Lato, Arial, sans-serif', // Atualize para Lato
+    h1: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    h2: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    h3: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    h4: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    h5: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    h6: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    body1: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
+    body2: {
+      fontFamily: 'Lato, Arial, sans-serif',
+    },
   },
   components: {
     MuiAppBar: {
