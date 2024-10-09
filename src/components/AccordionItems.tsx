@@ -95,28 +95,29 @@ const AccordionItems: React.FC<AccordionItemsProps> = ({
             >
                 <Box
                     display="flex"
+                    flexDirection="column"
                     justifyContent="space-between"
-                    alignItems="center"
                     width="100%"
                 >
+                    {/* Título */}
                     <Typography sx={{ fontWeight: 'bold' }}>{change.issue}</Typography>
-                    <Box>
-                        <IconButton
-                            onClick={onEdit}
-                            size="small"
-                            aria-label="edit"
-                            color="primary"
-                        >
-                            <Edit />
-                        </IconButton>
-                        <IconButton
-                            onClick={onDelete}
-                            size="small"
-                            aria-label="delete"
-                            color="primary"
-                        >
-                            <Archive />
-                        </IconButton>
+
+                    {/* Informações adicionais: status, branch, repositório */}
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        width="100%"
+                        mt={1}  // Margem superior para espaçamento entre título e dados
+                    >
+                        <Box>
+                            <Typography variant="body2"><b>Status:</b> status</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="body2"><b>Branch:</b> branch</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="body2"><b>Repositório:</b> repo</Typography>
+                        </Box>
                     </Box>
                 </Box>
             </AccordionSummary>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getProjectsList } from '../services/apiService';
 import AppLayout from '../components/AppLayout';
 import { Projects } from '../types/types';
+
 import { 
   Grid2,
   Alert, 
@@ -49,6 +50,8 @@ const ProjectsList: React.FC = () => {
     setCurrentPage(page);
   };
 
+  
+
   if (loading) {
     return (
       <Loading />
@@ -76,7 +79,7 @@ const ProjectsList: React.FC = () => {
         ) : (
         <Grid2 container spacing={3}>
           {currentItems.map((item) => (
-            item && <ProjectItem key={item.id} item={item} />
+            item && <ProjectItem key={item.id} item={item} id={undefined} />
           ))}
         </Grid2>
         )}

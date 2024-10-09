@@ -4,6 +4,8 @@ import theme from './theme';
 import ProjectsList from './pages/ProjectsList';
 import ProjectDetail from './pages/ProjectDetail'; 
 import ProjectChanges from './pages/ProjectChanges';
+import Guidelines from './pages/GuidelinesPage';
+import ProjectSettings from './pages/ProjectSettings';
 import Error404 from './pages/Error404';  // Importar página de erro 404
 import Error500 from './pages/Error500';  // Importar página de erro 500
 
@@ -18,8 +20,16 @@ function App() {
       element: <ProjectChanges />
     },
     {
+      path: "/projects/:id/settings",
+      element: <ProjectSettings />
+    },
+    {
       path: "/projects/:id/changes/:id/keys",
       element: <ProjectDetail />
+    },
+    {
+      path: "/guidelines",
+      element: <Guidelines />
     },
     {
       path: "*",

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
     Grid2,
     Card,
@@ -14,11 +15,19 @@ import { Settings, Folder } from '@mui/icons-material';
 import { Projects } from '../types/types';
 
 interface ProjectItemProps {
+    id: any;
     key?: string;
     item: Projects;
 }
 
 const ProjectItem: React.FC<ProjectItemProps> = (props) => {
+    const navigate = useNavigate();
+
+
+    const handleSettingsClick = () => {
+        navigate(`/projects/${props.id}/settings`);
+      };
+
     return (
         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={props.item.id} sx={{ p: 1 }}>
             <Link
@@ -54,10 +63,7 @@ const ProjectItem: React.FC<ProjectItemProps> = (props) => {
                         action={
                             <IconButton
                                 aria-label="settings"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Evita que o clique no ícone navegue para o link
-                                    console.log('Open settings for project', props.item.id);
-                                }}
+                                onClick={handleSettingsClick}
                             >
                                 <Settings />
                             </IconButton>
