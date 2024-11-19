@@ -1,0 +1,301 @@
+import React, { useCallback, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import {
+  Container,
+  Typography,
+  Breadcrumbs,
+  LinearProgress,
+  Box,
+  Button,
+} from '@mui/material';
+import AppLayout from '@/components/AppLayout';
+import GenericDialog from '@/components/GenericDialog';
+import Loading from '@/components/Loading';
+import HeaderTitle from '@/components/HeaderTitle';
+import { getAllProjectChangeKeysApi } from '@/services/apiService';
+import { useQuery } from '@tanstack/react-query';
+import KeyListV2 from '@/components/KeyListV2';
+import AddKeyForm from '@/components/AddKeyForm';
+import type { KeyDto, KeysSearchRequestDto } from '@openapi/api';
+import { Add } from '@mui/icons-material';
+// import type { Key } from '@/types/types';
+
+export interface TableManagement {
+  filters?: KeysSearchRequestDto;
+  order?: 'none' | 'asc' | 'desc';
+  sort?: string;
+  rowsPerPage?: number;
+  page?: number;
+}
+
+const initialFormValues: KeyDto = {
+  id: '',
+  module: {
+    name: '',
+  },
+  // bu: '',
+  // breakpoints: '',
+  sourceText: '',
+  // suggestedKey: '',
+  // translation: '',
+  repo: {
+    repository: '',
+  },
+  // legalImplication: false,
+  // screenshot: null,
+};
+
+interface ErrorsForm {
+  [key: string]: boolean;
+}
+
+const ChangeDetail: React.FC = () => {
+  const { projectId, changeId } = useParams<{
+    projectId: string;
+    changeId: string;
+  }>();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const totalSteps = 2;
+  const [progress, setProgress] = useState<number>(0);
+  const [progressVisible, setProgressVisible] = useState<boolean>(false);
+  // const [filters, setFilters] = useState<KeysSearchRequestDto>({});
+
+  const [errors, setErrors] = useState<ErrorsForm>({
+    module: false,
+    // bu: false,
+    // breakpoints: false,
+    repo: false,
+    SourceText: false,
+    // translation: false,
+  });
+
+  const [formValues, setFormValues] = useState<KeyDto>(initialFormValues);
+
+  const [tableManagement, setTableManagement] = useState<TableManagement>({
+    filters: {},
+    order: 'none',
+    sort: 'none',
+    rowsPerPage: 10,
+    page: 0,
+  });
+
+  console.log(tableManagement);
+
+  const {
+    isPending,
+    isError,
+    data: keys,
+    error,
+  } = useQuery({
+    queryKey: [`phraseProjectChangeKeys-${changeId}`],
+    queryFn: () =>
+      getAllProjectChangeKeysApi(
+        changeId ?? '',
+        projectId ?? '',
+        tableManagement.order,
+        tableManagement.page,
+        tableManagement.rowsPerPage,
+        tableManagement.sort,
+        tableManagement.filters,
+        { timeout: 10000 },
+      ),
+  });
+
+  const handleDialogOpen = useCallback(() => {
+    setDialogOpen(true);
+    setStep(1);
+  }, []);
+
+  const handleDialogClose = useCallback(() => {
+    setDialogOpen(false);
+    setFormValues(initialFormValues);
+  }, []);
+
+  const validateFields = useCallback(() => {
+    const newErrors = {
+      sourceText: formValues.sourceText === '',
+    };
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
+  }, [formValues]);
+
+  const handleSubmit = useCallback(() => {
+    if (validateFields()) {
+      handleDialogClose();
+    }
+  }, [handleDialogClose, validateFields]);
+
+  const handleNextStep = useCallback(() => {
+    if (validateFields()) {
+      setStep((prevStep) => prevStep + 1);
+    }
+  }, [validateFields]);
+
+  const handleEditKey = useCallback((dataToEdit: KeyDto) => {
+    setFormValues(dataToEdit);
+    setStep(1);
+    setDialogOpen(true);
+  }, []);
+
+  const handleDeleteKey = useCallback((id: string) => {
+    console.log(id);
+  }, []);
+
+  const handleSubmitKeyForm = async () => {
+    // Start progress modal
+    setProgressVisible(true);
+    setProgress(0);
+
+    try {
+      // Simulate the first step
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          setProgress(20);
+          resolve(true);
+        }, 1000);
+      });
+
+      // Simulate the second step
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          setProgress(60);
+          resolve(true);
+        }, 2000);
+      });
+
+      // Simulate final step
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          setProgress(100);
+          resolve(true);
+        }, 1000);
+      });
+
+      console.log('All API calls completed successfully.');
+    } catch (error) {
+      console.error('Error during API calls:', error);
+    } finally {
+      setTimeout(() => {
+        setProgressVisible(false); // Hide progress modal after a slight delay
+        // setFormValues(initialFormValues); // Reset form values after submission
+      }, 500); // Delay for user to see 100% before closing
+    }
+  };
+
+  if (isPending) {
+    return <Loading />;
+  }
+  if (isError) {
+    return <Typography>Error: {error.message}</Typography>;
+  }
+
+  return (
+    <AppLayout>
+      <Container>
+        <HeaderTitle page={changeId || 'Change'} />
+        {/* Breadcrumbs */}
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={2}
+        >
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link
+              to="/projects"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              Projects
+            </Link>
+            <Link
+              to={`/projects/${projectId}/changes`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              Changes
+            </Link>
+            <Typography color="text.primary">{changeId || 'Change'}</Typography>
+          </Breadcrumbs>
+          <Button
+            variant="contained"
+            onClick={() => handleDialogOpen()}
+            startIcon={<Add />}
+          >
+            Add key
+          </Button>
+        </Box>
+        {keys !== null ? (
+          <>
+            <KeyListV2
+              changeId={changeId ?? ''}
+              keys={keys.data}
+              handleEditKey={handleEditKey}
+              handleDeleteKey={handleDeleteKey}
+              tableManagement={tableManagement}
+              setTableManagement={setTableManagement}
+            />
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              p={2}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmitKeyForm}
+                sx={{ marginTop: 2 }}
+              >
+                Submit
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <Typography
+            variant="h6"
+            color="textSecondary"
+            sx={{ textAlign: 'center' }}
+          >
+            This change does not have any keys yet!
+          </Typography>
+        )}
+      </Container>
+
+      {progressVisible && (
+        <GenericDialog
+          open={progressVisible}
+          title="Submitting..."
+          onClose={() => setProgressVisible(false)}
+          onSubmit={() => {}} // Provide a dummy onSubmit
+        >
+          <LinearProgress variant="determinate" value={progress} />
+          <Typography variant="body2" color="textSecondary">
+            {`Progress: ${progress}%`}
+          </Typography>
+        </GenericDialog>
+      )}
+
+      <GenericDialog
+        open={dialogOpen}
+        title={formValues && formValues.id ? 'Edit Key' : 'Add New Key'}
+        onClose={handleDialogClose}
+        onSubmit={handleSubmit}
+        step={step}
+        setStep={setStep}
+        totalSteps={totalSteps}
+        onNext={handleNextStep}
+      >
+        <AddKeyForm
+          formValues={formValues}
+          setFormValues={setFormValues}
+          step={step}
+          errors={errors}
+          setErrors={setErrors}
+        />
+      </GenericDialog>
+    </AppLayout>
+  );
+};
+
+export default ChangeDetail;
