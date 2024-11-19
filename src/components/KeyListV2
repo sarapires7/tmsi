@@ -1,0 +1,454 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+import Box from '@mui/material/Box';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
+import InputBase from '@mui/material/InputBase';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
+
+import {
+  Column,
+  Table as ReactTable,
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+  getSortedRowModel,
+  type SortingState,
+} from '@tanstack/react-table';
+import type { KeyDto, KeysSearchRequestDto } from '@openapi/api';
+import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
+import { alpha, IconButton, styled, Tooltip, useTheme } from '@mui/material';
+import {
+  Delete,
+  Edit,
+  KeyboardDoubleArrowUp,
+  KeyboardDoubleArrowDown,
+} from '@mui/icons-material';
+import type { TableManagement } from '@/pages/ChangeDetail';
+// import type { Key } from '@/types/types';
+import { useDebounce } from '@/utils/hooks/useDebounce';
+import { useQueryClient } from '@tanstack/react-query';
+
+interface KeyListV2Props {
+  changeId: string;
+  keys: KeyDto[];
+  handleEditKey: (dataToEdit: KeyDto) => void;
+  handleDeleteKey: (id: string) => void;
+  tableManagement: TableManagement;
+  setTableManagement: React.Dispatch<React.SetStateAction<TableManagement>>;
+}
+
+const CustomInput = styled(InputBase)(({ theme }) => ({
+  'label + &': {
+    marginTop: theme.spacing(3),
+  },
+  '& .MuiInputBase-input': {
+    borderRadius: 4,
+    position: 'relative',
+    backgroundColor: '#FFF',
+    border: '1px solid',
+    borderColor: '#E0E3E7',
+    fontSize: 16,
+    marginBottom: 8,
+    width: 'auto',
+    padding: '10px 12px',
+    transition: theme.transitions.create([
+      'border-color',
+      'background-color',
+      'box-shadow',
+    ]),
+    '&:focus': {
+      boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 0 0.2rem`,
+      borderColor: theme.palette.primary.main,
+    },
+    ...theme.applyStyles('dark', {
+      backgroundColor: '#1A2027',
+      borderColor: '#2D3843',
+    }),
+  },
+}));
+
+function getNextCircularSortOrder(
+  initialValue: 'none' | 'asc' | 'desc' = 'none',
+): 'none' | 'asc' | 'desc' {
+  const orders: Array<'none' | 'asc' | 'desc'> = ['none', 'asc', 'desc'];
+  let currentIndex = orders.indexOf(initialValue);
+  if (currentIndex === -1) {
+    throw new Error(
+      `Invalid initial value. Must be one of: ${orders.join(', ')}`,
+    );
+  }
+
+  const nextIndex = (currentIndex + 1) % orders.length;
+  currentIndex = nextIndex;
+  console.log(
+    'getNextCircularSortOrder returns order: ',
+    orders[currentIndex] ?? 'none',
+  );
+  return orders[currentIndex] ?? 'none';
+}
+
+const KeyListV2 = (props: KeyListV2Props) => {
+  const columns = React.useMemo<ColumnDef<KeyDto>[]>(
+    () => [
+      {
+        id: 'name',
+        header: 'Name',
+        accessorFn: (row) => row.name,
+        cell: (info) => {
+          return (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Box>
+                <Box sx={{ fontWeight: 800 }}>{info.row.original.name}</Box>
+                <Box sx={{ color: 'grey' }}>
+                  {info.row.original.description}
+                </Box>
+              </Box>
+              <Box>
+                <Box>
+                  {info.row.original.changes?.map((change) => {
+                    return <Chip key={`change-${change}`} label={change} />;
+                  })}
+                </Box>
+              </Box>
+            </Box>
+          );
+        },
+      },
+      {
+        header: 'Actions',
+        cell: (info) => (
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Tooltip title="Edit" placement="left">
+              <IconButton
+                onClick={() => props.handleEditKey(info.getValue() as KeyDto)}
+              >
+                <Edit />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete" placement="right">
+              <IconButton
+                onClick={() =>
+                  props.handleDeleteKey((info.getValue() as KeyDto).id ?? '')
+                }
+              >
+                <Delete />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+        maxSize: 100,
+      },
+    ],
+    [props],
+  );
+
+  return (
+    <>
+      <KeyTable
+        {...{
+          changeId: props.changeId,
+          keys: props.keys,
+          columns,
+          tableManagement: props.tableManagement,
+          setTableManagement: props.setTableManagement,
+        }}
+      />
+    </>
+  );
+};
+
+interface KeyTableProps {
+  changeId: string;
+  keys: KeyDto[];
+  columns: ColumnDef<KeyDto>[];
+  tableManagement: TableManagement;
+  setTableManagement: React.Dispatch<React.SetStateAction<TableManagement>>;
+}
+
+const KeyTable = (props: KeyTableProps) => {
+  const theme = useTheme();
+  // const [sorting, setSorting] = React.useState<SortingState>([]);
+  const table = useReactTable({
+    data: props.keys,
+    columns: props.columns,
+    // enableSorting: true,
+    // enableMultiSort: true,
+    // enableSortingRemoval: true,
+    // Pipeline
+    getCoreRowModel: getCoreRowModel(),
+    // getFilteredRowModel: getFilteredRowModel(),
+    // getPaginationRowModel: getPaginationRowModel(),
+    // getSortedRowModel: getSortedRowModel(),
+    // onSortingChange: setSorting,
+    //
+    // debugTable: true,
+    // state: {
+    //   sorting,
+    // },
+    state: {
+      pagination: {
+        pageIndex: props.tableManagement.page ?? 0,
+        pageSize: props.tableManagement.rowsPerPage ?? 10,
+      },
+    },
+  });
+
+  interface InputFilterProps {
+    name: keyof KeyDto;
+    label: string;
+    placeholder: string;
+  }
+
+  const inputFilters: InputFilterProps[] = [
+    {
+      name: 'name',
+      label: 'Name',
+      placeholder: 'Search by key name...',
+    },
+  ];
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      {inputFilters.map((filter, index) => (
+        <Filter
+          key={`filter-${filter.name}-${index}`}
+          column={{ name: 'name' }}
+          label={filter.label}
+          changeId={props.changeId}
+          placeholder={filter.placeholder}
+          tableManagement={props.tableManagement}
+          setTableManagement={props.setTableManagement}
+        />
+      ))}
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          borderRadius: 5,
+          border: '1px solid lightgrey',
+        }}
+      >
+        <Table
+          sx={{
+            minWidth: 370,
+          }}
+          aria-label="Keys table"
+        >
+          <TableHead
+            sx={{
+              backgroundColor: theme.palette.grey[100],
+            }}
+          >
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} sx={{ verticalAlign: 'bottom' }}>
+                {headerGroup.headers.map((header, index) => {
+                  return (
+                    <TableCell
+                      key={header.index}
+                      colSpan={header.colSpan}
+                      sx={{
+                        borderLeft: index > 0 ? '1px solid lightgrey' : '',
+                      }}
+                    >
+                      {header.isPlaceholder ? null : (
+                        <Box
+                          sx={{
+                            cursor:
+                              props.tableManagement.sort === header.column.id
+                                ? 'pointer'
+                                : 'default',
+                            userSelect: 'none',
+                          }}
+                          title={
+                            props.tableManagement.sort === header.column.id
+                              ? props.tableManagement.order === 'asc'
+                                ? 'Sort ascending'
+                                : props.tableManagement.order === 'desc'
+                                  ? 'Sort descending'
+                                  : 'Clear sort'
+                              : undefined
+                          }
+                        >
+                          <Box
+                            onClick={() =>
+                              props.setTableManagement({
+                                order: getNextCircularSortOrder() ?? 'none',
+                                sort: header.column.id,
+                              })
+                            }
+                            display="flex"
+                            alignItems="center"
+                            justifyContent={
+                              index === headerGroup.headers.length - 1
+                                ? 'center'
+                                : 'space-between'
+                            }
+                            sx={{
+                              fontWeight: 900,
+                            }}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                            {props.tableManagement.sort === header.column.id &&
+                            props.tableManagement.order === 'desc' ? (
+                              <KeyboardDoubleArrowUp />
+                            ) : (
+                              ''
+                            )}
+                            {props.tableManagement.sort === header.column.id &&
+                            props.tableManagement.order === 'asc' ? (
+                              <KeyboardDoubleArrowDown />
+                            ) : (
+                              ''
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHead>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <TableRow
+                  key={row.id}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: theme.palette.grey[100],
+                    },
+                  }}
+                >
+                  {row.getVisibleCells().map((cell, index) => {
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        sx={{
+                          borderLeft: index > 0 ? '1px solid lightgrey' : '',
+                          padding: '8px 16px',
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[
+          5,
+          10,
+          25,
+          { label: 'All', value: props.keys.length },
+        ]}
+        component="div"
+        count={table.getFilteredRowModel().rows.length}
+        rowsPerPage={props.tableManagement.rowsPerPage ?? 10}
+        page={props.tableManagement.page ?? 0}
+        slotProps={{
+          select: {
+            inputProps: { 'aria-label': 'rows per page' },
+            native: true,
+          },
+        }}
+        onPageChange={(_, page) => {
+          props.setTableManagement({ page: page });
+        }}
+        onRowsPerPageChange={(e) => {
+          const size = e.target.value ? Number(e.target.value) : 10;
+          props.setTableManagement({ rowsPerPage: size });
+        }}
+        ActionsComponent={TablePaginationActions}
+      />
+    </Box>
+  );
+};
+
+interface FilterProps {
+  column: KeysSearchRequestDto;
+  label: string;
+  placeholder: string;
+  changeId: string;
+  tableManagement: TableManagement;
+  setTableManagement: React.Dispatch<React.SetStateAction<TableManagement>>;
+}
+
+const Filter = (props: FilterProps) => {
+  const queryClient = useQueryClient();
+  const [inputValue, setInputValue] = useState('');
+  const debounceTimeout = useRef(null);
+
+  const handleInputChange = (e: { target: { value: any } }) => {
+    const value = e.target.value;
+    setInputValue(value);
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      filter(value);
+    }, 500);
+  };
+
+  const filter = useCallback(
+    (value: string) => {
+      queryClient.invalidateQueries({
+        queryKey: [`phraseProjectChangeKeys-${props.changeId}`],
+      });
+
+      console.log(value, inputValue);
+      props.setTableManagement({
+        filters: {
+          name: value,
+        },
+      });
+    },
+    [queryClient, props],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
+
+  return (
+    <CustomInput
+      value={inputValue}
+      name={props.label ? props.label : ''}
+      onChange={handleInputChange}
+      placeholder={props.placeholder ? props.placeholder : ''}
+      inputProps={{ 'aria-label': 'search' }}
+    />
+  );
+};
+
+export default KeyListV2;
