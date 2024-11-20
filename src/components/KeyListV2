@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
@@ -77,24 +77,14 @@ const CustomInput = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-function getNextCircularSortOrder(
-  initialValue: 'none' | 'asc' | 'desc' = 'none',
-): 'none' | 'asc' | 'desc' {
-  const orders: Array<'none' | 'asc' | 'desc'> = ['none', 'asc', 'desc'];
-  let currentIndex = orders.indexOf(initialValue);
-  if (currentIndex === -1) {
-    throw new Error(
-      `Invalid initial value. Must be one of: ${orders.join(', ')}`,
-    );
-  }
+let sortOrderIndex = 1;
+const orders = ['asc', 'desc'];
 
-  const nextIndex = (currentIndex + 1) % orders.length;
-  currentIndex = nextIndex;
-  console.log(
-    'getNextCircularSortOrder returns order: ',
-    orders[currentIndex] ?? 'none',
-  );
-  return orders[currentIndex] ?? 'none';
+function getNextCircularSortOrder() {
+  const nextIndex =
+    sortOrderIndex === 0 ? 1 : (sortOrderIndex + 1) % orders.length;
+  sortOrderIndex = nextIndex;
+  return orders[nextIndex];
 }
 
 const KeyListV2 = (props: KeyListV2Props) => {
@@ -103,6 +93,7 @@ const KeyListV2 = (props: KeyListV2Props) => {
       {
         id: 'name',
         header: 'Name',
+        sortable: true,
         accessorFn: (row) => row.name,
         cell: (info) => {
           return (
@@ -181,24 +172,11 @@ interface KeyTableProps {
 
 const KeyTable = (props: KeyTableProps) => {
   const theme = useTheme();
-  // const [sorting, setSorting] = React.useState<SortingState>([]);
+
   const table = useReactTable({
     data: props.keys,
     columns: props.columns,
-    // enableSorting: true,
-    // enableMultiSort: true,
-    // enableSortingRemoval: true,
-    // Pipeline
     getCoreRowModel: getCoreRowModel(),
-    // getFilteredRowModel: getFilteredRowModel(),
-    // getPaginationRowModel: getPaginationRowModel(),
-    // getSortedRowModel: getSortedRowModel(),
-    // onSortingChange: setSorting,
-    //
-    // debugTable: true,
-    // state: {
-    //   sorting,
-    // },
     state: {
       pagination: {
         pageIndex: props.tableManagement.page ?? 0,
@@ -286,7 +264,7 @@ const KeyTable = (props: KeyTableProps) => {
                           <Box
                             onClick={() =>
                               props.setTableManagement({
-                                order: getNextCircularSortOrder() ?? 'none',
+                                order: getNextCircularSortOrder(),
                                 sort: header.column.id,
                               })
                             }
@@ -399,7 +377,6 @@ interface FilterProps {
 }
 
 const Filter = (props: FilterProps) => {
-  const queryClient = useQueryClient();
   const [inputValue, setInputValue] = useState('');
   const debounceTimeout = useRef(null);
 
@@ -412,33 +389,13 @@ const Filter = (props: FilterProps) => {
     }
 
     debounceTimeout.current = setTimeout(() => {
-      filter(value);
-    }, 500);
-  };
-
-  const filter = useCallback(
-    (value: string) => {
-      queryClient.invalidateQueries({
-        queryKey: [`phraseProjectChangeKeys-${props.changeId}`],
-      });
-
-      console.log(value, inputValue);
       props.setTableManagement({
         filters: {
           name: value,
         },
       });
-    },
-    [queryClient, props],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
-    };
-  }, []);
+    }, 1000);
+  };
 
   return (
     <CustomInput
