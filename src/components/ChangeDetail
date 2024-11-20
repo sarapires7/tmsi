@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   Container,
@@ -13,7 +13,7 @@ import GenericDialog from '@/components/GenericDialog';
 import Loading from '@/components/Loading';
 import HeaderTitle from '@/components/HeaderTitle';
 import { getAllProjectChangeKeysApi } from '@/services/apiService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import KeyListV2 from '@/components/KeyListV2';
 import AddKeyForm from '@/components/AddKeyForm';
 import type { KeyDto, KeysSearchRequestDto } from '@openapi/api';
@@ -22,7 +22,7 @@ import { Add } from '@mui/icons-material';
 
 export interface TableManagement {
   filters?: KeysSearchRequestDto;
-  order?: 'none' | 'asc' | 'desc';
+  order?: 'asc' | 'desc';
   sort?: string;
   rowsPerPage?: number;
   page?: number;
@@ -59,28 +59,26 @@ const ChangeDetail: React.FC = () => {
   const totalSteps = 2;
   const [progress, setProgress] = useState<number>(0);
   const [progressVisible, setProgressVisible] = useState<boolean>(false);
-  // const [filters, setFilters] = useState<KeysSearchRequestDto>({});
 
   const [errors, setErrors] = useState<ErrorsForm>({
     module: false,
-    // bu: false,
-    // breakpoints: false,
     repo: false,
     SourceText: false,
-    // translation: false,
   });
 
   const [formValues, setFormValues] = useState<KeyDto>(initialFormValues);
 
   const [tableManagement, setTableManagement] = useState<TableManagement>({
     filters: {},
-    order: 'none',
+    order: 'asc',
     sort: 'none',
     rowsPerPage: 10,
     page: 0,
   });
 
-  console.log(tableManagement);
+  console.log('tableManagement', tableManagement.filters);
+
+  const queryClient = useQueryClient();
 
   const {
     isPending,
@@ -101,6 +99,15 @@ const ChangeDetail: React.FC = () => {
         { timeout: 10000 },
       ),
   });
+
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      // Call the query key function to get the query key
+      // This is important to ensure the query key is created the same way as the query hook
+      // This insures the cache is invalidated correctly and is typed correctly
+      queryKey: [`phraseProjectChangeKeys-${changeId}`],
+    });
+  }, [tableManagement.filters, tableManagement.order]);
 
   const handleDialogOpen = useCallback(() => {
     setDialogOpen(true);
