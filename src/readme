@@ -1,24 +1,58 @@
-This POC shall implement the first integration of the Saxo trading platform into the Wealth web app.
+/**
+ * Módulo responsável por gerenciar a integração com a plataforma DigitalEdge.
+ * Implementa autenticação federada via SAML, controle de aba e reuso de sessão.
+ */
 
-Specification
-Additional menu option labeled "DigitalEdge" is displayed if delivered from Menu endpoint (can be simulated) below menu option "Trading desk"
-Click on menu option opens new tab
-Upon opening the tab, it should check the DigitalEdge login status.
-If the user is not logged in, then
-A call to the backend needs to be triggered to get the SAML message used for authentication towards DigitalEdge
-The DigitalEdge URL needs to be setup in the new tab
-A "POST" must be triggered with the body containing the previously received SAML message as a standard HTML form submit with one parameter named SAMLResponse
-Triggering the request should launch the login process at DigitalEdge
-From then on the user can interact with DigitalEdge
-If the user logged in before
-Re-open the tab again and let user continue where he left
-The user can switch back to Wealth anytime by switching the tabs
-Technical considerations
-Probably it makes sense to create a separate mobile-module for this
-Dependencies - try to mock for the moment
-URL to test DigitalEdge platform
-Backend endpoint to retrieve SAML message
-Extension of menu structure delivered from backend
-Other topics to be tackled outside of this POC
-Logout federation
-Potential session timeouts
+let digitalEdgeTab: Window | null = null
+
+const DIGITAL_EDGE_URL = 'https://saxo-digitaledge-portal-url.com' // URL real
+const SAML_ENDPOINT = '/api/get-digitaledge-saml' // Endpoint simulado para POC
+
+/**
+ * Recupera o SAMLResponse do backend.
+ */
+const getSAMLFromBackend = async (): Promise<string> => {
+  const response = await fetch(SAML_ENDPOINT)
+  if (!response.ok) {
+    throw new Error('Erro ao obter o SAML do backend')
+  }
+  const data = await response.json()
+  return data.samlResponse
+}
+
+/**
+ * Cria uma aba nova com o SAMLResponse enviado por POST para o DigitalEdge.
+ */
+const openTabWithSAML = (samlResponse: string): void => {
+  const formHtml = `
+    <form id="samlForm" action="${DIGITAL_EDGE_URL}" method="POST">
+      <input type="hidden" name="SAMLResponse" value="${samlResponse}" />
+    </form>
+    <script>document.getElementById('samlForm').submit();</script>
+  `
+  digitalEdgeTab = window.open('', '_blank')
+  if (digitalEdgeTab) {
+    digitalEdgeTab.document.write(formHtml)
+    digitalEdgeTab.document.close()
+  } else {
+    throw new Error('Falha ao abrir a aba do DigitalEdge')
+  }
+}
+
+/**
+ * Função principal a ser chamada ao clicar no menu.
+ */
+export const handleDigitalEdgeClick = async (): Promise<void> => {
+  try {
+    if (digitalEdgeTab && !digitalEdgeTab.closed) {
+      digitalEdgeTab.focus()
+      return
+    }
+
+    const samlResponse = await getSAMLFromBackend()
+    openTabWithSAML(samlResponse)
+  } catch (error) {
+    console.error('Erro na integração com o DigitalEdge:', error)
+    alert('Não foi possível abrir o DigitalEdge. Tente novamente mais tarde.')
+  }
+}
