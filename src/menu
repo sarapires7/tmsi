@@ -1,0 +1,287 @@
+/* eslint-disable multiline-ternary */
+import { Colors } from '@bjss/bjss-frontend-themes'
+import Box from 'layouts/Box'
+import Icon from 'layouts/Icon'
+import { TextProps } from 'layouts/Text'
+import Modal from 'molecules/Modal'
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
+import ContentMenuItem from './ContentMenuItem'
+import ConfigProvider from 'config'
+
+import HamburgerContentMenuStyled, {
+  List,
+  ModalContent,
+  OverlayStyled
+} from './styles'
+
+export interface MenuItems extends TextProps {
+  handleClick?: () => void
+  label?: string
+  separatorLabel?: string
+  subItemsList?: MenuSubItems[]
+  disabled?: boolean
+  optionsContent?: MenuSubItems[]
+  badge?: string
+}
+export interface MenuSubItems extends TextProps {
+  handleClick?: () => void
+  label?: string
+  separatorLabel?: string
+  disabled?: boolean
+}
+
+export interface HamburgerContentMenuProps {
+  opened?: boolean
+  items?: MenuItems[]
+  setOpened?: (value: boolean) => void
+  width?: number
+  liFirstMb?: number
+  liLastMb?: number
+  colors?: keyof Colors
+  isUserBuHKG?: boolean
+  hasBeenAlreadyOpened?: boolean
+  onCloseCallback?: () => void
+}
+
+type OptionsModal = {
+  open: boolean
+  content?: MenuSubItems[]
+}
+
+const HamburgerContentMenu: FC<HamburgerContentMenuProps> = ({
+  opened,
+  setOpened,
+  isUserBuHKG,
+  hasBeenAlreadyOpened,
+  onCloseCallback,
+  items,
+  ...props
+}) => {
+  const ref = useRef(null)
+  const [secondSeparator, setSecondSeparator] = useState(false)
+  const [subMenuOpen, setSubMenuOpen] = useState(false)
+  const [optionsModal, setOptionsModal] = useState<OptionsModal>()
+  const [subMenuItems, setSubMenuItems] = useState([])
+  const { buSymbol } = ConfigProvider.getInstance().config
+
+  const handleClickOutside = useCallback((event) => {
+    if (ref && !ref.current.contains(event.target)) {
+      setOpened(false)
+      if (onCloseCallback) {
+        onCloseCallback()
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (opened) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [ref, opened])
+
+  const overlayHandler = () => {
+    setOpened(false)
+    setSubMenuOpen(false)
+    setOptionsModal({ open: false })
+  }
+
+  const modalHandler = () => {
+    setOpened(true)
+  }
+
+  const getBuLogo = () => {
+    switch (buSymbol) {
+      case 'cash':
+        return (
+          <img
+            src={`/public/assets/${buSymbol}/assets/images/${buSymbol}-menu-logo.svg`}
+            style={{
+              display: 'block',
+              width: '100px',
+              height: '60px'
+            }}
+          />
+        )
+
+      case 'bzp':
+        return (
+          <img
+            src={`/public/assets/${buSymbol}/assets/images/${buSymbol}-menu-logo.svg`}
+            style={{
+              display: 'block',
+              width: '230px',
+              height: '60px'
+            }}
+          />
+        )
+
+      case 'sls':
+        return (
+          <img
+            src={`/public/assets/${buSymbol}/assets/images/${buSymbol}-menu-logo.svg`}
+            style={{
+              display: 'block',
+              width: '164px',
+              height: '64px'
+            }}
+          />
+        )
+    }
+  }
+
+  const listItem = (item: MenuItems, index: number) => {
+    if (item.separatorLabel) {
+      if (!secondSeparator) {
+        setSecondSeparator(true)
+      }
+      return (
+        <ContentMenuItem
+          key={`${item.separatorLabel}+${index}`}
+          item={item}
+          classStyled={!secondSeparator ? 'separator' : 'secondSeparator'}
+          handleClick={() => setOpened(true)}
+        />
+      )
+    }
+    return (
+      <ContentMenuItem
+        key={`${item.separatorLabel}+${index}`}
+        item={item}
+        handleClick={() => {
+          if (item?.disabled) return
+          if (item.subItemsList) {
+            setSubMenuItems([
+              ...[
+                {
+                  color: 'black',
+                  fontSize: 16,
+                  label: item.label,
+                  type: 'regular'
+                }
+              ],
+              ...item.subItemsList
+            ])
+            setSubMenuOpen(true)
+          } else if (item.optionsContent) {
+            setOptionsModal({
+              open: true,
+              content: item.optionsContent
+            })
+          } else {
+            item?.handleClick?.()
+            setOpened(false)
+            if (onCloseCallback) {
+              onCloseCallback()
+            }
+          }
+        }}
+      />
+    )
+  }
+
+  return (
+    <>
+      <HamburgerContentMenuStyled ref={ref}>
+        {opened && <OverlayStyled onClick={overlayHandler} hasShadow={false} />}
+        {opened && (
+          <>
+            <ModalContent onClick={modalHandler} hasShadow={false}>
+              <List {...props}>
+                <Box
+                  justifyContent="center"
+                  display="flex"
+                  mt="40"
+                  pos="absolute"
+                  mb="40"
+                  ml="40"
+                  mr="40"
+                  style={{ width: '320px' }}
+                >
+                  <Box display="flex" alignItems="center" flex={1} mb={64}>
+                    {!['bzp', 'cash', 'sls'].includes(buSymbol) ? (
+                      <Icon
+                        name={`${buSymbol}-logo`}
+                        color={'mainColor100'}
+                        size="l2"
+                      />
+                    ) : (
+                      <Box>{getBuLogo()}</Box>
+                    )}
+                  </Box>
+                  <ul>{items?.map((item, index) => listItem(item, index))}</ul>
+                  {isUserBuHKG && (
+                    <a
+                      href="https://www.dps.org.hk/index_EN.html"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img
+                        src={`/public/assets/${buSymbol}/assets/images/DPS-logo.png`}
+                        alt="Logo"
+                      />
+                    </a>
+                  )}
+                  {subMenuOpen && (
+                    <Modal
+                      customModalStyle={{ left: '30px' }}
+                      isModalOpen={subMenuOpen}
+                      setIsModalOpen={setSubMenuOpen}
+                      displayContent={true}
+                      contentModal={() => {
+                        return (
+                          <ul className="subMenuList">
+                            {subMenuItems?.map((item, index) =>
+                              listItem(item, index)
+                            )}
+                          </ul>
+                        )
+                      }}
+                      handleButtonClick={() => setSubMenuOpen(false)}
+                      width="350px"
+                      pl="24"
+                      pr="24"
+                      pt="24"
+                      pb="24"
+                      hasShadow={false}
+                    />
+                  )}
+                  {optionsModal?.open && (
+                    <Modal
+                      customModalStyle={{ left: '30px' }}
+                      isModalOpen={optionsModal?.open}
+                      setIsModalOpen={() =>
+                        setOptionsModal({ open: !optionsModal?.open })
+                      }
+                      displayContent={true}
+                      contentModal={() => {
+                        return (
+                          <ul className="subMenuList">
+                            {optionsModal?.content?.map((item, index) =>
+                              listItem(item, index)
+                            )}
+                          </ul>
+                        )
+                      }}
+                      handleButtonClick={() => setSubMenuOpen(false)}
+                      width={`${320 - 48}px`}
+                      pl="36"
+                      pr="24"
+                      pt="24"
+                      pb="24"
+                      hasShadow={false}
+                    />
+                  )}
+                </Box>
+              </List>
+            </ModalContent>
+          </>
+        )}
+      </HamburgerContentMenuStyled>
+    </>
+  )
+}
+
+export default HamburgerContentMenu
