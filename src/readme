@@ -1,0 +1,24 @@
+This POC shall implement the first integration of the Saxo trading platform into the Wealth web app.
+
+Specification
+Additional menu option labeled "DigitalEdge" is displayed if delivered from Menu endpoint (can be simulated) below menu option "Trading desk"
+Click on menu option opens new tab
+Upon opening the tab, it should check the DigitalEdge login status.
+If the user is not logged in, then
+A call to the backend needs to be triggered to get the SAML message used for authentication towards DigitalEdge
+The DigitalEdge URL needs to be setup in the new tab
+A "POST" must be triggered with the body containing the previously received SAML message as a standard HTML form submit with one parameter named SAMLResponse
+Triggering the request should launch the login process at DigitalEdge
+From then on the user can interact with DigitalEdge
+If the user logged in before
+Re-open the tab again and let user continue where he left
+The user can switch back to Wealth anytime by switching the tabs
+Technical considerations
+Probably it makes sense to create a separate mobile-module for this
+Dependencies - try to mock for the moment
+URL to test DigitalEdge platform
+Backend endpoint to retrieve SAML message
+Extension of menu structure delivered from backend
+Other topics to be tackled outside of this POC
+Logout federation
+Potential session timeouts
