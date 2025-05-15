@@ -1,58 +1,15 @@
-/**
- * Módulo responsável por gerenciar a integração com a plataforma DigitalEdge.
- * Implementa autenticação federada via SAML, controle de aba e reuso de sessão.
- */
+import { handleDigitalEdgeClick } from 'modules/DigitalEdgeHandler'
 
-let digitalEdgeTab: Window | null = null
-
-const DIGITAL_EDGE_URL = 'https://saxo-digitaledge-portal-url.com' // URL real
-const SAML_ENDPOINT = '/api/get-digitaledge-saml' // Endpoint simulado para POC
-
-/**
- * Recupera o SAMLResponse do backend.
- */
-const getSAMLFromBackend = async (): Promise<string> => {
-  const response = await fetch(SAML_ENDPOINT)
-  if (!response.ok) {
-    throw new Error('Erro ao obter o SAML do backend')
+const listItem = (item: MenuItems, index: number) => {
+  if (item.label === 'DigitalEdge') {
+    return (
+      <ContentMenuItem
+        key={`digitalEdge-${index}`}
+        item={item}
+        handleClick={handleDigitalEdgeClick}
+      />
+    )
   }
-  const data = await response.json()
-  return data.samlResponse
-}
 
-/**
- * Cria uma aba nova com o SAMLResponse enviado por POST para o DigitalEdge.
- */
-const openTabWithSAML = (samlResponse: string): void => {
-  const formHtml = `
-    <form id="samlForm" action="${DIGITAL_EDGE_URL}" method="POST">
-      <input type="hidden" name="SAMLResponse" value="${samlResponse}" />
-    </form>
-    <script>document.getElementById('samlForm').submit();</script>
-  `
-  digitalEdgeTab = window.open('', '_blank')
-  if (digitalEdgeTab) {
-    digitalEdgeTab.document.write(formHtml)
-    digitalEdgeTab.document.close()
-  } else {
-    throw new Error('Falha ao abrir a aba do DigitalEdge')
-  }
-}
-
-/**
- * Função principal a ser chamada ao clicar no menu.
- */
-export const handleDigitalEdgeClick = async (): Promise<void> => {
-  try {
-    if (digitalEdgeTab && !digitalEdgeTab.closed) {
-      digitalEdgeTab.focus()
-      return
-    }
-
-    const samlResponse = await getSAMLFromBackend()
-    openTabWithSAML(samlResponse)
-  } catch (error) {
-    console.error('Erro na integração com o DigitalEdge:', error)
-    alert('Não foi possível abrir o DigitalEdge. Tente novamente mais tarde.')
-  }
+  // resto da função permanece igual
 }
