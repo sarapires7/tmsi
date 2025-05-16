@@ -1,0 +1,58 @@
+// Referência global para manter a aba aberta
+let digitalEdgeTab: Window | null = null;
+
+export const handleDigitalEdgeClick = async (digitalEdgeUrl: string) => {
+  // Se a aba já estiver aberta e ainda ativa, apenas foca nela
+  if (digitalEdgeTab && !digitalEdgeTab.closed) {
+    digitalEdgeTab.focus();
+  } else {
+    // Abre uma nova aba imediatamente para evitar bloqueio do navegador
+    digitalEdgeTab = window.open('', '_blank');
+  }
+
+  if (!digitalEdgeTab) {
+    console.info('Falha ao abrir nova aba.');
+    return;
+  }
+
+  // Verifica o login
+  const isLoggedIn = await checkDigitalEdgeLoginStatus();
+
+  if (isLoggedIn) {
+    // Apenas redireciona se o usuário já estiver logado
+    digitalEdgeTab.location.href = digitalEdgeUrl;
+  } else {
+    try {
+      const samlMessageResponse = await fetch('/backend/digitaledge/saml-message', {
+        method: 'GET',
+        headers: {
+          // Adicione autorizações se necessário
+        },
+      });
+
+      if (samlMessageResponse.ok) {
+        const samlMessage = await samlMessageResponse.text();
+
+        // Cria e envia formulário com SAMLResponse
+        const form = digitalEdgeTab.document.createElement('form');
+        form.method = 'post';
+        form.action = digitalEdgeUrl;
+
+        const input = digitalEdgeTab.document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'SAMLResponse';
+        input.value = samlMessage;
+
+        form.appendChild(input);
+        digitalEdgeTab.document.body.appendChild(form);
+        form.submit();
+      } else {
+        console.error('Erro ao obter mensagem SAML:', samlMessageResponse.statusText);
+        digitalEdgeTab.close();
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao buscar SAML:', error);
+      digitalEdgeTab.close();
+    }
+  }
+};
