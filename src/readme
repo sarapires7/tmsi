@@ -1,520 +1,58 @@
-import { Apis } from '@bjss/bjss-common'
-import {
-  IOriginBankTransfer,
-  IOriginFileUpload,
-  useNotificationsActionsContext,
-  usePaymentValidationContext
-} from '@bjss/bjss-frontend-context'
-import { useUserLogout } from 'actions'
-import ConfigProvider from 'config'
-import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { UserAuthorizations } from 'enums'
-import { useUtilsApiCalls } from 'api'
-import { usePooling } from 'hooks'
-import { GetMenuResponse } from '@bjss/bjss-common/dist/apis/userManagement/GetMenuApi'
-import useCheckMenuPayments from './payments/checkMenuPayments'
-import { usePaymentsToValidatePolling } from '../hooks/usePaymentsToValidatePolling'
-const { GetAccountsByUserIdApi } = Apis.position
+// Referência global para manter a aba aberta
+let digitalEdgeTab: Window | null = null;
 
-const SideBarItems = () => {
-  const { t } = useTranslation()
-  const router = useRouter()
-  const { signOut } = useUserLogout()
-  const { config } = ConfigProvider.getInstance()
-  const {
-    useUtilsModuleActionsContext,
-    useBankTransferActionsContext,
-    useUserManagementContext,
-    useUserManagementActionsContext,
-    useFileUploadActionsContext,
-    useNotificationsContext,
-    useUtilsModuleContext,
-    useToastActionsContext
-  } = config
-  const { setUserBPs, setAccountsByUserId, setPortfoliosAccountsByUser } =
-    useUtilsModuleActionsContext()
-  const { accountsByUserId } = useUtilsModuleContext()
-  const { setOrigin, selectPaymentTransfer } = useBankTransferActionsContext()
-  const { userSettings } = useUserManagementContext()
-  const { updateUserManagement } = useUserManagementActionsContext()
-  const { hasNotifications } = useNotificationsContext()
-  const { setHasNotifications } = useNotificationsActionsContext()
-  const { hasBadges } = usePaymentValidationContext()
-  const { setOrigin: setOriginFileUpload } = useFileUploadActionsContext()
-  const { getMenu } = useUtilsApiCalls()
-  const { displayToast } = useToastActionsContext()
-  const { checkMenuPaymentOptions } = useCheckMenuPayments()
-  const [menuData, setMenuData] = useState<GetMenuResponse>()
-
-  const skipInternalRoute = useRef<boolean>(false)
-
-  const headerItems = []
-  const headerItemsDefault = [
-    {
-      color: 'secondaryColor100',
-      fontSize: 16,
-      label: t('menu.analyse'),
-      type: 'bold'
-    },
-    {
-      handleClick: () => {
-        router.push('/dashboard/portfolio/main')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.portfolio'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/investmentInsights')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.investmentInsights'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/news')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.news'),
-      type: 'regular'
-    },
-    {
-      color: 'secondaryColor100',
-      fontSize: 16,
-      separatorLabel: t('menu.transact'),
-      type: 'bold'
-    },
-    {
-      handleClick: () => {
-        router.push('/dashboard')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.tradingDesk'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/dashboard/fxTrading')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.fxTrading'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => null,
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.payments'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/documents/signatures')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.documentSignatures'),
-      type: 'regular'
-    },
-    {
-      color: 'secondaryColor100',
-      fontSize: 16,
-      separatorLabel: t('menu.communicate'),
-      type: 'bold'
-    },
-    {
-      handleClick: () => {
-        router.push('/messages')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.messages'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/notifications')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.notifications'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => {
-        router.push('/documents')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.yourDocuments'),
-      type: 'regular'
-    },
-    {
-      color: 'secondaryColor100',
-      fontSize: 16,
-      separatorLabel: t('menu.update'),
-      type: 'bold'
-    },
-    {
-      handleClick: () => {
-        router.push('/settings')
-      },
-      color: 'grey1',
-      disabled: true,
-      fontSize: 18,
-      label: t('menu.settings'),
-      type: 'regular'
-    },
-    {
-      handleClick: () => signOut(),
-      color: 'mainColor100',
-      disabled: false,
-      fontSize: 18,
-      label: t('menu.signOut'),
-      type: 'regular'
-    }
-  ]
-  const examBookLevel = {
-    handleClick: () => {
-      router.push('/exam/book-level')
-    },
-    color: 'grey1',
-    disabled: true,
-    fontSize: 18,
-    label: t('menu.portfolioEXAM'),
-    type: 'regular'
-  }
-  if (userSettings?.isExam) {
-    headerItemsDefault.splice(2, 0, examBookLevel)
+export const handleDigitalEdgeClick = async (digitalEdgeUrl: string) => {
+  // Se a aba já estiver aberta e ainda ativa, apenas foca nela
+  if (digitalEdgeTab && !digitalEdgeTab.closed) {
+    digitalEdgeTab.focus();
+  } else {
+    // Abre uma nova aba imediatamente para evitar bloqueio do navegador
+    digitalEdgeTab = window.open('', '_blank');
   }
 
-  const initialize = {
-    getAccountsByUserId: async () => {
-      try {
-        const getAccountsByUserIdApi = new GetAccountsByUserIdApi()
-        const response = await getAccountsByUserIdApi.execute()
+  if (!digitalEdgeTab) {
+    console.info('Falha ao abrir nova aba.');
+    return;
+  }
 
-        const allAccounts = response?.data?.portfoliosAccountsByUser
-          ?.map((portfolioData) =>
-            portfolioData.portfolios
-              ?.map((portfolio) => portfolio.accounts)
-              ?.flatMap((account) => account)
-          )
-          ?.flatMap((account) => account)
+  // Verifica o login
+  const isLoggedIn = await checkDigitalEdgeLoginStatus();
 
-        setAccountsByUserId(allAccounts)
-        setPortfoliosAccountsByUser(response?.data?.portfoliosAccountsByUser)
-        setUserBPs(
-          response?.data?.portfoliosAccountsByUser?.map((account) => {
-            return {
-              customerName: account.customerName,
-              bp: account.customerReferenceNumber
-            }
-          })
-        )
-      } catch (error) {
-        console.error('getAccountsByUserId', error)
+  if (isLoggedIn) {
+    // Apenas redireciona se o usuário já estiver logado
+    digitalEdgeTab.location.href = digitalEdgeUrl;
+  } else {
+    try {
+      const samlMessageResponse = await fetch('/backend/digitaledge/saml-message', {
+        method: 'GET',
+        headers: {
+          // Adicione autorizações se necessário
+        },
+      });
+
+      if (samlMessageResponse.ok) {
+        const samlMessage = await samlMessageResponse.text();
+
+        // Cria e envia formulário com SAMLResponse
+        const form = digitalEdgeTab.document.createElement('form');
+        form.method = 'post';
+        form.action = digitalEdgeUrl;
+
+        const input = digitalEdgeTab.document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'SAMLResponse';
+        input.value = samlMessage;
+
+        form.appendChild(input);
+        digitalEdgeTab.document.body.appendChild(form);
+        form.submit();
+      } else {
+        console.error('Erro ao obter mensagem SAML:', samlMessageResponse.statusText);
+        digitalEdgeTab.close();
       }
-    },
-    getNotificationsUnreadCount: async () => {
-      try {
-        const { GetNotificationsUnreadCountApi } = Apis.notifications
-        const getNotificationsUnreadCountApi =
-          new GetNotificationsUnreadCountApi()
-        const { data } = await getNotificationsUnreadCountApi.execute()
-        setHasNotifications(data.payload.notificationBadge)
-      } catch (error) {
-        console.log('getNotificationsUnreadCount', error)
-      }
-    },
-    hamburguerMenuListener: () => {
-      const handler = () => initialize.getNotificationsUnreadCount()
-      document.addEventListener('onhamburguermenuopen', handler)
-      return () => {
-        document.removeEventListener('onhamburguermenuopen', handler)
-      }
+    } catch (error) {
+      console.error('Erro inesperado ao buscar SAML:', error);
+      digitalEdgeTab.close();
     }
   }
-
-  const notificationsBadgePooling = usePooling({
-    api: async ({ next }) => {
-      await initialize.getNotificationsUnreadCount()
-      next()
-    },
-    timeout: 5000
-  })
-
-  usePaymentsToValidatePolling()
-
-  useEffect(() => {
-    const isUserInDashboard = ['/dashboard', '/payments'].includes(router.route)
-    return isUserInDashboard
-      ? notificationsBadgePooling.start()
-      : initialize.hamburguerMenuListener()
-  }, [router.route])
-
-  useEffect(() => {
-    if (userSettings?.userId) {
-      getUserAuthorization()
-    }
-    accountsByUserId?.length === 0 && initialize.getAccountsByUserId()
-  }, [])
-
-  useEffect(() => {
-    if (userSettings?.userId) {
-      updateMenu()
-    }
-  }, [userSettings?.languageSettings?._id, userSettings?.userId])
-
-  const updateMenu = async () => {
-    const data = await getMenu({
-      channel: 'Desktop'
-    })
-    if (
-      data?.statusCode !== 403 &&
-      (!data || !data?.sections || !data?.sections?.length)
-    ) {
-      displayToast({
-        title: t('menuErrorMessage'),
-        type: 'error'
-      })
-    }
-    checkMenuPaymentOptions(data)
-    setMenuData(data)
-    return data
-  }
-
-  const getUserAuthorization = async () => {
-    const data = await updateMenu()
-    const userAuthorizations = {
-      bankTransfer: {
-        singleSignature: data?.userAuthorizationGranted?.includes(
-          UserAuthorizations.SINGLE_SIGNATURE
-        ),
-        collectiveSignature: data?.userAuthorizationGranted?.includes(
-          UserAuthorizations.COLLECTIVE_SIGNATURE
-        ),
-        creationOnly: data?.userAuthorizationGranted?.includes(
-          UserAuthorizations.CREATION_ONLY
-        )
-      },
-      accountTransfer: data?.userAuthorizationGranted?.includes(
-        UserAuthorizations.ACCOUNT_TRANSFER
-      )
-    }
-    updateUserManagement({ ...userSettings, userAuthorizations })
-  }
-
-  const menuActions = {
-    default: (internalRoute, id) => {
-      switch (id) {
-        case 'Desktop.Menu.Transact.Payments.Initiate.Account.Transfer':
-          setOrigin({
-            origin: IOriginBankTransfer.NO_ORIGIN,
-            redirectToSuccess: router.pathname
-          })
-          selectPaymentTransfer({})
-          break
-        case 'Desktop.Menu.Transact.Payments.Initiate.File.Upload':
-          setOriginFileUpload(IOriginFileUpload.MENU)
-          router.push('/payments')
-          break
-        case 'Desktop.Menu.Transact.Payments.Initiate.Bank.Transfer':
-          setOrigin({
-            origin: IOriginBankTransfer.EXECUTE,
-            redirectToSuccess: internalRoute
-          })
-          break
-        case 'Desktop.Menu.Transact.Payments.Initiate.Standing.Order.Bank.Transfer':
-          setOrigin({
-            origin: IOriginBankTransfer.STANDING_ORDERS,
-            redirectToSuccess: internalRoute
-          })
-          break
-        case 'Desktop.Menu.Transact.Payments.Initiate.Standing.Order.Account.Transfer':
-          setOrigin({
-            origin: IOriginBankTransfer.STANDING_ORDERS,
-            redirectToSuccess: router.pathname
-          })
-          selectPaymentTransfer({})
-          break
-      }
-
-      if (!skipInternalRoute?.current) {
-        router.push(internalRoute)
-      }
-    },
-    'Desktop.Menu.Update.Signout': () => signOut(),
-    'Desktop.Menu.Transact.Payments.Initiate.Standing.Order': () => null
-  }
-
-  const menuStandingOrder = (subMenu) => {
-    const subItems = []
-    let activeItems = 0
-    subMenu?.sections?.forEach((section) => {
-      const topicNameSubitems = {
-        color: 'black',
-        fontSize: 16,
-        separatorLabel: section.name,
-        type: 'regular'
-      }
-
-      const buttonsSubitems = section?.items
-        ?.map((item) => {
-          if (!item?.permission?.visible) {
-            return undefined
-          }
-          if (item?.permission?.enabled && item?.permission?.visible) {
-            activeItems += 1
-          }
-          return {
-            handleClick: () => {
-              menuActions[item.id]
-                ? menuActions[item.id]()
-                : menuActions.default(item.internalRoute, item.id)
-            },
-            color: item?.permission?.enabled ? 'mainColor100' : 'grey1',
-            fontSize: 18,
-            label: item.name,
-            type: 'regular',
-            disabled: !item?.permission?.enabled
-          }
-        })
-        ?.filter((item) => typeof item === 'object')
-      buttonsSubitems.length &&
-        subItems.push(topicNameSubitems, ...buttonsSubitems)
-    })
-
-    return {
-      optionsContent: subItems,
-      activeItems: activeItems
-    }
-  }
-
-  const subMenuItems = (subMenu) => {
-    const subItems = []
-    subMenu?.sections?.forEach((section) => {
-      const topicNameSubitems = {
-        color: 'grey5',
-        fontSize: 14,
-        separatorLabel: section.name,
-        type: 'regular'
-      }
-
-      const buttonsSubitems = section?.items
-        ?.map((item) => {
-          let subMenuStandingOrder
-          if (!item?.permission?.visible) return undefined
-          if (
-            item.id ===
-              'Desktop.Menu.Transact.Payments.Initiate.Standing.Order' &&
-            !!item?.subMenu?.sections.length
-          ) {
-            subMenuStandingOrder = menuStandingOrder(item?.subMenu)
-          }
-          const isPaymentValidation =
-            item.id ===
-              'Desktop.Menu.Transact.Payments.Validate.Payment.Validation' &&
-            item?.badge
-
-          return {
-            handleClick: () => {
-              if (
-                item.id ===
-                  'Desktop.Menu.Transact.Payments.Initiate.Standing.Order' &&
-                item?.subMenu?.sections.length === 1 &&
-                subMenuStandingOrder?.activeItems === 1
-              ) {
-                return subMenuStandingOrder?.optionsContent[1]?.handleClick()
-              } else {
-                menuActions[item.id]
-                  ? menuActions[item.id]()
-                  : menuActions.default(item.internalRoute, item.id)
-              }
-            },
-            color: item?.permission?.enabled ? 'mainColor100' : 'grey1',
-            fontSize: 18,
-            label: item.name,
-            type: 'regular',
-            disabled: !item?.permission?.enabled,
-            [isPaymentValidation && 'badge']: hasBadges,
-            [subMenuStandingOrder?.activeItems > 1 && 'optionsContent']:
-              subMenuStandingOrder?.optionsContent
-          }
-        })
-        ?.filter((item) => typeof item === 'object')
-      buttonsSubitems.length &&
-        subItems.push(topicNameSubitems, ...buttonsSubitems)
-    })
-    return subItems
-  }
-  menuData?.sections?.forEach((section, index) => {
-    const topicName = {
-      color: 'grey5',
-      fontSize: 14,
-      [index === 0 ? 'label' : 'separatorLabel']: section.name,
-      type: 'regular'
-    }
-
-    const buttons = section?.items
-      ?.map((item) => {
-        let qtyBadge
-        if (!item?.permission?.visible) {
-          return undefined
-        }
-        if (item.id === 'Desktop.Menu.Communicate.Notifications') {
-          qtyBadge = hasNotifications?.toString()
-        } else if (
-          item.id === 'Desktop.Menu.Transact.Payments' &&
-          item?.badge
-        ) {
-          qtyBadge = hasBadges
-        }
-
-        return {
-          handleClick: () => {
-            menuActions[item.id]
-              ? menuActions[item.id]()
-              : menuActions.default(item.internalRoute, item.id)
-          },
-          color: item?.permission?.enabled ? 'mainColor100' : 'grey1',
-          fontSize: 18,
-          label: item.name,
-          type: 'regular',
-          disabled: !item?.permission?.enabled,
-          [qtyBadge && 'badge']: qtyBadge
-          // --> hiding payments submenu
-          // [item?.subMenu?.sections?.length && 'subItemsList']: subMenuItems(
-          //   item.subMenu
-          // )
-        }
-      })
-      ?.filter((item) => typeof item === 'object')
-    buttons.length && headerItems.push(topicName, ...buttons)
-  })
-
-  return (headerItems.length && headerItems) || headerItemsDefault
-}
-
-export default SideBarItems
-
-
+};
