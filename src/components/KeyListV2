@@ -1,0 +1,158 @@
+import React, { useRef, useState } from 'react';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  InputBase,
+  IconButton,
+  Tooltip,
+  Typography,
+  Chip,
+} from '@mui/material';
+import { Edit, Delete, KeyboardDoubleArrowUp, KeyboardDoubleArrowDown } from '@mui/icons-material';
+import { useReactTable, flexRender, ColumnDef } from '@tanstack/react-table';
+import type { KeyDto, KeysSearchRequestDto } from '@openapi/api';
+import type { TableManagement } from '@/pages/ChangeDetail';
+
+interface KeyListV2Props {
+  changeId: string;
+  keys: KeyDto[];
+  handleEditKey: (dataToEdit: KeyDto) => void;
+  handleDeleteKey: (id: string) => void;
+  tableManagement: TableManagement;
+  setTableManagement: React.Dispatch<React.SetStateAction<TableManagement>>;
+}
+
+const KeyListV2: React.FC<KeyListV2Props> = ({
+  changeId,
+  keys,
+  handleEditKey,
+  handleDeleteKey,
+  tableManagement,
+  setTableManagement,
+}) => {
+  const columns: ColumnDef<KeyDto>[] = [
+    {
+      id: 'name',
+      header: 'Name',
+      accessorFn: (row) => row.name,
+      cell: ({ row }) => (
+        <Box>
+          <Typography fontWeight="bold">{row.original.name}</Typography>
+          {row.original.description && <Typography color="textSecondary">{row.original.description}</Typography>}
+          <Box mt={1}>
+            {row.original.changes?.map((change) => (
+              <Chip key={change} label={change} size="small" />
+            ))}
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <Box>
+          <Tooltip title="Edit">
+            <IconButton onClick={() => handleEditKey(row.original)}>
+              <Edit />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton onClick={() => handleDeleteKey(row.original.id ?? '')}>
+              <Delete />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
+
+  const table = useReactTable({
+    data: keys,
+    columns,
+    state: { pagination: { pageIndex: tableManagement.page, pageSize: tableManagement.rowsPerPage } },
+  });
+
+  return (
+    <Box>
+      <FilterInput
+        placeholder="Search by name..."
+        onChange={(value) => setTableManagement((prev) => ({ ...prev, filters: { name: value } }))}
+      />
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableCell key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableHead>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={keys.length}
+        page={tableManagement.page}
+        onPageChange={(_, newPage) => setTableManagement((prev) => ({ ...prev, page: newPage }))}
+        rowsPerPage={tableManagement.rowsPerPage}
+        onRowsPerPageChange={(event) =>
+          setTableManagement((prev) => ({ ...prev, rowsPerPage: parseInt(event.target.value, 10) }))
+        }
+      />
+    </Box>
+  );
+};
+
+const FilterInput: React.FC<{ placeholder: string; onChange: (value: string) => void }> = ({ placeholder, onChange }) => {
+  const [value, setValue] = useState('');
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value;
+    setValue(newValue);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => onChange(newValue), 300);
+  };
+
+  return (
+    <Box display="flex" alignItems="center" mb={2}>
+      <InputBase
+        value={value}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        style={{ flex: 1, border: '1px solid #ccc', borderRadius: 4, padding: '4px 8px' }}
+      />
+      <IconButton>
+        <KeyboardDoubleArrowUp />
+      </IconButton>
+      <IconButton>
+        <KeyboardDoubleArrowDown />
+      </IconButton>
+    </Box>
+  );
+};
+
+export default KeyListV2;
